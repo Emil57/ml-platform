@@ -13,9 +13,9 @@ on:
         default: ''
         type: string
 
-permissions: 
+permissions:
   contents: write
-  
+
 jobs:
   promote-model:
     name: "Promote Models"

@@ -32,7 +32,7 @@ stages:
       - ../../artifacts/f1/data/raw/drivers.csv
     outs:
       - ../../artifacts/f1/data/prepared/prepared_data.csv
-  
+
   feature_engineering:
     cmd: python feature_engineering.py
     deps:
@@ -42,7 +42,7 @@ stages:
       - ../../artifacts/f1/data/featured/train.csv
       - ../../artifacts/f1/data/featured/valid.csv
       - ../../artifacts/f1/data/featured/test.csv
-    
+
   train:
     cmd: python train_model.py
     deps:

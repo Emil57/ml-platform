@@ -2,7 +2,7 @@
 Playground for Machine Learning and MLOps
 
 
-# Target Architecture 
+# Target Architecture
 
 ```
 machine-learning/
