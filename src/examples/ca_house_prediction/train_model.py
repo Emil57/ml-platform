@@ -3,7 +3,7 @@ import os
 import joblib
 from sklearn.linear_model import LinearRegression
 
-from ca_house_prediction.prepare_data import X_train, y_train
+from src.examples.ca_house_prediction.prepare_data import X_train, y_train
 
 output_dir = os.path.join(
     os.path.abspath("../../"), "artifacts", "ca_house_prediction", "models"

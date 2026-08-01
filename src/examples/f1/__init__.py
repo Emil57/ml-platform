@@ -1,6 +1,5 @@
 "F1 artifacts and files"
 
-import json
 import os
 
 KAGGLE_DATASET = "rohanrao/formula-1-world-championship-1950-2020"

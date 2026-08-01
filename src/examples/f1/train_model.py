@@ -4,8 +4,8 @@ import joblib
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.linear_model import SGDClassifier
 
-from f1 import MODELS_DIR
-from f1.feature_engineering import train, train_te, valid, valid_te
+from src.examples.f1 import MODELS_DIR
+from src.examples.f1.feature_engineering import train, train_te, valid, valid_te
 
 try:
     clf = SGDClassifier(

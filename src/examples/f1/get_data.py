@@ -2,7 +2,7 @@ import os
 
 import kaggle
 
-from f1 import KAGGLE_DATASET, RAW_DATA_DIR
+from src.examples.f1 import KAGGLE_DATASET, RAW_DATA_DIR
 
 try:
     # Make sure output directory exists
