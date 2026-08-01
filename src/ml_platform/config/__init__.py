@@ -2,6 +2,7 @@
 Configuration package.
 """
 
+from .loader import settings
 from .paths import (
     DATA_DIR,
     DOCS_DIR,
@@ -16,6 +17,7 @@ from .paths import (
 )
 
 __all__ = [
+    "settings",
     "ROOT_DIR",
     "DATA_DIR",
     "RAW_DATA_DIR",
