@@ -30,3 +30,19 @@ machine-learning/
 ├── tests/
 └── pyproject.toml
 ```
+## Platform Architecture
+
+The repository is organized around a reusable Machine Learning Platform rather than individual ML projects.
+
+The `ml_platform` package contains reusable infrastructure that will be shared across future machine learning applications.
+
+Current platform modules include:
+
+- Configuration
+- Data
+- Models
+- Training
+- Evaluation
+- Utilities
+
+Additional platform capabilities will be introduced incrementally throughout the project roadmap.

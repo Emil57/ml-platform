@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import TargetEncoder
 
-from f1 import FEATURE_DATA_DIR
-from f1.prepare_data import df
+from src.examples.f1 import FEATURE_DATA_DIR
+from src.examples.f1.prepare_data import df
 
 
 def add_driver_rollups(d):
@@ -59,12 +59,14 @@ try:
     # 6) Target: driver won the race
     df["won"] = (df["positionOrder"] == 1).astype(int)
 
-    # 7) Train/validation split by time (e.g., train <= 2016, validate 2017–2019, test 2020)
+    # 7) Train/validation split by time (e.g., train <= 2016, validate 2017–2019,
+    # test 2020)
     train = df[df["year"] <= 2016]
     valid = df[(df["year"] >= 2017) & (df["year"] <= 2019)]
     test = df[df["year"] == 2020]
 
-    # 8) Select features (avoid leakage: no post-race info like final time, status, laps completed)
+    # 8) Select features (avoid leakage: no post-race info
+    # like final time, status, laps completed)
     feat_cols = [
         "grid_pos",
         "driver_recent_points",
@@ -87,7 +89,8 @@ try:
         )
         test[c] = test[c].fillna(train[c].median() if train[c].dtype != "O" else "UNK")
 
-    # 9) Encode high-cardinality categoricals with target encoding (avoid leakage: fit on train only)
+    # 9) Encode high-cardinality categoricals with target encoding (avoid leakage: fit
+    # on train only)
     cat_cols = ["constructorId", "driverId", "circuitId"]
     te = TargetEncoder(smooth=0.3)
     train_te = te.fit_transform(train[cat_cols], train["won"])

@@ -10,8 +10,8 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
-from f1 import METRICS_DIR, MODELS_DIR
-from f1.feature_engineering import test, test_te
+from src.examples.f1 import METRICS_DIR, MODELS_DIR
+from src.examples.f1.feature_engineering import test, test_te
 
 try:
     model = joblib.load(f"{MODELS_DIR}/model.pkl")
