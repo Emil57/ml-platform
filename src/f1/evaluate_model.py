@@ -1,7 +1,15 @@
 import json
 import os
+
 import joblib
-from sklearn.metrics import accuracy_score, f1_score, log_loss, brier_score_loss, roc_auc_score
+from sklearn.metrics import (
+    accuracy_score,
+    brier_score_loss,
+    f1_score,
+    log_loss,
+    roc_auc_score,
+)
+
 from f1 import METRICS_DIR, MODELS_DIR
 from f1.feature_engineering import test, test_te
 
@@ -23,12 +31,12 @@ try:
         "f1_score": f1_score(test["won"], y_pred),
         "log_loss": log_loss(test["won"], y_proba),
         "brier_score": brier_score_loss(test["won"], y_proba),
-        "roc_auc": roc_auc_score(test["won"], y_proba)
+        "roc_auc": roc_auc_score(test["won"], y_proba),
     }
 
     os.makedirs(METRICS_DIR, exist_ok=True)
-    with open(f'{METRICS_DIR}/metrics.json', "w") as f:
+    with open(f"{METRICS_DIR}/metrics.json", "w") as f:
         json.dump(metrics, f)
 
 except Exception as e:
-    print(f'Error: {e}')
+    print(f"Error: {e}")

@@ -1,8 +1,10 @@
 import os
-import pandas as pd
-from f1 import RAW_DATA_DIR, PREPARED_DATA_DIR 
 
-try: 
+import pandas as pd
+
+from f1 import PREPARED_DATA_DIR, RAW_DATA_DIR
+
+try:
     results = pd.read_csv(f"{RAW_DATA_DIR}/results.csv")
     races = pd.read_csv(f"{RAW_DATA_DIR}/races.csv")
     drivers = pd.read_csv(f"{RAW_DATA_DIR}/drivers.csv")
@@ -21,11 +23,11 @@ try:
     df = df.sort_values(["driverId", "race_date"])
     print("Sorted dataframe by driverId and race_date.")
 
-    #Save prepared data
+    # Save prepared data
     os.makedirs(PREPARED_DATA_DIR, exist_ok=True)
     df.to_csv(f"{PREPARED_DATA_DIR}/prepared_data.csv", index=False)
     print(f"Output File: {PREPARED_DATA_DIR}/prepared_data.csv")
 
-except FileNotFoundError as e: 
-    print(f'Error: {e}')
+except FileNotFoundError as e:
+    print(f"Error: {e}")
     raise
