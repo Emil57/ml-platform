@@ -982,6 +982,8 @@ dependencies = [
     { name = "joblib" },
     { name = "kaggle" },
     { name = "pandas" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
     { name = "scikit-learn" },
 ]
 
@@ -1002,6 +1004,8 @@ requires-dist = [
     { name = "joblib", specifier = ">=1.2" },
     { name = "kaggle", specifier = ">=1.8.3" },
     { name = "pandas", specifier = ">=2.0" },
+    { name = "pydantic", specifier = ">=2.13.4" },
+    { name = "pydantic-settings", specifier = ">=2.14.2" },
     { name = "scikit-learn", specifier = ">=1.2" },
 ]
 
