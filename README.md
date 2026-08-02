@@ -46,3 +46,25 @@ Current platform modules include:
 - Utilities
 
 Additional platform capabilities will be introduced incrementally throughout the project roadmap.
+
+
+## Configuration
+
+The platform uses `pydantic-settings` to centralize configuration.
+
+Configuration values can be supplied through environment variables with the `ML_` prefix.
+
+Example:
+
+```bash
+ML_DEBUG=true
+ML_RANDOM_SEED=123
+```
+
+Applications should import the shared configuration instance:
+
+```python
+from ml_platform.config import settings
+
+print(settings.environment)
+```
