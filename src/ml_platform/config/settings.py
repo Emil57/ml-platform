@@ -15,7 +15,13 @@ class Settings(BaseSettings):
     debug: bool = False
     random_seed: int = 42
 
+    train_split: float = 0.8
+    validation_split: float = 0.2
+
+    log_level: str = "INFO"
+
     model_config = SettingsConfigDict(
         env_prefix="ML_",
+        env_file=".env",
         extra="ignore",
     )
