@@ -2,7 +2,7 @@ import os
 
 import pandas as pd
 
-from src.examples.f1 import PREPARED_DATA_DIR, RAW_DATA_DIR
+from examples.f1 import PREPARED_DATA_DIR, RAW_DATA_DIR
 
 try:
     results = pd.read_csv(f"{RAW_DATA_DIR}/results.csv")
