@@ -4,7 +4,7 @@ import os
 import joblib
 from sklearn.metrics import mean_squared_error, r2_score
 
-from src.examples.ca_house_prediction.prepare_data import X_test, y_test
+from examples.ca_house_prediction.prepare_data import X_test, y_test
 
 try:
     model_dir = os.path.join(

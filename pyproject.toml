@@ -47,6 +47,7 @@ select = ["E", "F", "I", "UP", "B"]
 python_version = "3.12"
 mypy_path = "src"
 explicit_package_bases = true
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -56,4 +57,9 @@ pythonpath = ["src"]
 source = ["src"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/"]
+packages = [
+    "src/ml_platform",
+    "src/models",
+    "src/training",
+    "src/evaluation",
+]
