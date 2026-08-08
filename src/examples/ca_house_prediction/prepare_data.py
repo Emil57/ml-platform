@@ -1,17 +1,46 @@
-import os
+from pathlib import Path
 
-import pandas as pd
-from sklearn.model_selection import train_test_split
+from ml_platform.data import (
+    DataLoader,
+    DataSplitter,
+    DataValidator,
+)
 
-try:
-    output_dir = os.path.join(
-        os.path.abspath("../../"), "artifacts", "ca_house_prediction", "data"
-    )
 
-    data = pd.read_csv(f"{output_dir}/housing.csv")
+DATA_DIR = (
+    Path(__file__).resolve().parents[3]
+    / "artifacts"
+    / "ca_house_prediction"
+    / "data"
+)
+
+DATASET_PATH = DATA_DIR / "housing.csv"
+
+
+def main() -> None:
+    """Prepare the California Housing dataset."""
+
+    # Load raw data
+    loader = DataLoader()
+    data = loader.load_csv(DATASET_PATH)
+
     print(data.head())
 
-    data.rename(
+    # Validate raw data
+    validator = DataValidator()
+
+    validator.validate_not_empty(data)
+
+    validator.validate_columns(
+        data,
+        [
+            "median_income",
+            "median_house_value",
+        ],
+    )
+
+    # Project-specific transformation
+    data = data.rename(
         columns={
             "median_income": "MedInc",
             "housing_median_age": "HouseAge",
@@ -20,27 +49,30 @@ try:
             "population": "Population",
             "households": "Households",
             "median_house_value": "MedHouseVal",
-        },
-        inplace=True,
+        }
     )
 
-    # Features and target
-    X = data[["MedInc"]]  # Median income (single feature for simplicity)
-    y = data["MedHouseVal"]  # Median house value
+    # Select model features and target
+    model_data = data[["MedInc", "MedHouseVal"]]
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
+    # Split dataset
+    splitter = DataSplitter()
+
+    train, validation, test = splitter.split(model_data)
+
     print(
-        f"Split data: {X_train.shape[0]} train samples, {X_test.shape[0]} test samples."
+        f"Split data: {len(train)} train samples, "
+        f"{len(validation)} validation samples, "
+        f"{len(test)} test samples."
     )
 
-    X_train.to_csv(f"{output_dir}/X_train.csv", index=False)
-    X_test.to_csv(f"{output_dir}/X_test.csv", index=False)
-    y_train.to_csv(f"{output_dir}/y_train.csv", index=False)
-    y_test.to_csv(f"{output_dir}/y_test.csv", index=False)
-    print(f"Saved train/test splits to {output_dir}")
-except Exception as e:
-    print(f"Error: {e}")
-finally:
-    pass
+    # Save datasets
+    train.to_csv(DATA_DIR / "train.csv", index=False)
+    validation.to_csv(DATA_DIR / "validation.csv", index=False)
+    test.to_csv(DATA_DIR / "test.csv", index=False)
+
+    print(f"Saved prepared data to {DATA_DIR}")
+
+
+if __name__ == "__main__":
+    main()

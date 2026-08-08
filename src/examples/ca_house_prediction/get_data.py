@@ -1,21 +1,27 @@
-import os
+from pathlib import Path
 
-import kaggle
+from ml_platform.data.sources import KaggleSource
 
-# Ensure Kaggle API is configured
-# kaggle.json must be in ~/.kaggle/ or C:\Users\<YourUsername>\.kaggle\
 
-try:
-    dataset = "camnugent/california-housing-prices"
-    output_dir = os.path.join(
-        os.path.abspath("../../"), "artifacts", "ca_house_prediction", "data"
-    )
-    # Make sure output directory exists
-    os.makedirs(output_dir, exist_ok=True)
+DATASET = "camnugent/california-housing-prices"
 
-    # Download dataset
-    print(f"Downloading {dataset} to {output_dir}...")
-    kaggle.api.dataset_download_files(dataset, path=output_dir, unzip=True)
-    print("Download complete. Files are in:", output_dir)
-except Exception as e:
-    print(f"Error: {e}")
+OUTPUT_DIR = (
+    Path(__file__).resolve().parents[3]
+    / "artifacts"
+    / "ca_house_prediction"
+    / "data"
+)
+
+
+def main() -> None:
+    """Download the California Housing dataset."""
+
+    source = KaggleSource(DATASET)
+
+    output_path = source.fetch(OUTPUT_DIR)
+
+    print(f"Dataset downloaded to: {output_path}")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,44 +1,70 @@
 import json
-import os
+from pathlib import Path
 
 import joblib
 from sklearn.metrics import mean_squared_error, r2_score
 
-from examples.ca_house_prediction.prepare_data import X_test, y_test
+from ml_platform.data import DataLoader
 
-try:
-    model_dir = os.path.join(
-        os.path.abspath("../../"), "artifacts", "ca_house_prediction", "models"
+
+ARTIFACTS_DIR = (
+    Path(__file__).resolve().parents[3]
+    / "artifacts"
+    / "ca_house_prediction"
+)
+
+DATA_DIR = ARTIFACTS_DIR / "data"
+MODEL_DIR = ARTIFACTS_DIR / "models"
+METRICS_DIR = ARTIFACTS_DIR / "metrics"
+
+
+def main() -> None:
+    """Evaluate the California Housing model."""
+
+    # Load test data
+    loader = DataLoader()
+
+    test_data = loader.load_csv(
+        DATA_DIR / "test.csv"
     )
 
-    model = joblib.load(f"{model_dir}/model.pkl")
+    X_test = test_data[["MedInc"]]
+    y_test = test_data["MedHouseVal"]
 
+    # Load trained model
+    model = joblib.load(
+        MODEL_DIR / "model.pkl"
+    )
+
+    # Generate predictions
     y_pred = model.predict(X_test)
+
+    # Calculate metrics
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
 
     print("Coefficient:", model.coef_)
     print("Intercept:", model.intercept_)
-    print("Mean Squared Error:", mean_squared_error(y_test, y_pred))
-    print("R² Score:", r2_score(y_test, y_pred))
+    print("Mean Squared Error:", mse)
+    print("R² Score:", r2)
 
-    metrics_dir = os.path.join(
-        os.path.abspath("../../"), "artifacts", "ca_house_prediction", "metrics"
-    )
-    os.makedirs(metrics_dir, exist_ok=True)
+    # Save metrics
+    METRICS_DIR.mkdir(parents=True, exist_ok=True)
 
-    # After training and prediction
     metrics = {
-        "Coefficient": model.coef_.tolist(),  # convert numpy array to list
+        "Coefficient": model.coef_.tolist(),
         "Intercept": (
             model.intercept_.tolist()
             if hasattr(model.intercept_, "tolist")
             else model.intercept_
         ),
-        "Mean Squared Error": mean_squared_error(y_test, y_pred),
-        "R2 Score": r2_score(y_test, y_pred),
+        "Mean Squared Error": mse,
+        "R2 Score": r2,
     }
 
-    with open(f"{metrics_dir}/metrics.json", "w") as f:
-        json.dump(metrics, f, indent=4)
+    with open(METRICS_DIR / "metrics.json", "w") as file:
+        json.dump(metrics, file, indent=4)
 
-except Exception as e:
-    print(f"Error: {e}")
+
+if __name__ == "__main__":
+    main()
