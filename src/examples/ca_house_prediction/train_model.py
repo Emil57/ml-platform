@@ -5,19 +5,12 @@ from sklearn.linear_model import LinearRegression
 
 from ml_platform.data import DataLoader
 
-
 DATA_DIR = (
-    Path(__file__).resolve().parents[3]
-    / "artifacts"
-    / "ca_house_prediction"
-    / "data"
+    Path(__file__).resolve().parents[3] / "artifacts" / "ca_house_prediction" / "data"
 )
 
 MODEL_DIR = (
-    Path(__file__).resolve().parents[3]
-    / "artifacts"
-    / "ca_house_prediction"
-    / "models"
+    Path(__file__).resolve().parents[3] / "artifacts" / "ca_house_prediction" / "models"
 )
 
 
@@ -26,17 +19,12 @@ def main() -> None:
 
     loader = DataLoader()
 
-    train_data = loader.load_csv(
-        DATA_DIR / "train.csv"
-    )
+    train_data = loader.load_csv(DATA_DIR / "train.csv")
 
     X_train = train_data[["MedInc"]]
     y_train = train_data["MedHouseVal"]
 
-    print(
-        f"Data Shape: {X_train.shape}, "
-        f"{y_train.shape}"
-    )
+    print(f"Data Shape: {X_train.shape}, " f"{y_train.shape}")
 
     model = LinearRegression()
 

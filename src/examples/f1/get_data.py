@@ -1,15 +1,16 @@
-import os
-
-import kaggle
-
 from examples.f1 import KAGGLE_DATASET, RAW_DATA_DIR
+from ml_platform.data.sources import KaggleSource
 
-try:
-    # Make sure output directory exists
-    os.makedirs(RAW_DATA_DIR, exist_ok=True)
 
-    # Load the latest version
-    kaggle.api.dataset_download_files(KAGGLE_DATASET, path=RAW_DATA_DIR, unzip=True)
-    print(f"Downloaded {KAGGLE_DATASET} to {RAW_DATA_DIR}")
-except Exception as e:
-    print(f"Error: {e}")
+def main() -> None:
+    """Download the F1 dataset."""
+
+    source = KaggleSource(KAGGLE_DATASET)
+
+    output_path = source.fetch(RAW_DATA_DIR)
+
+    print(f"Downloaded {KAGGLE_DATASET} to {output_path}")
+
+
+if __name__ == "__main__":
+    main()

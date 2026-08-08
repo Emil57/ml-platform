@@ -6,12 +6,8 @@ from ml_platform.data import (
     DataValidator,
 )
 
-
 DATA_DIR = (
-    Path(__file__).resolve().parents[3]
-    / "artifacts"
-    / "ca_house_prediction"
-    / "data"
+    Path(__file__).resolve().parents[3] / "artifacts" / "ca_house_prediction" / "data"
 )
 
 DATASET_PATH = DATA_DIR / "housing.csv"

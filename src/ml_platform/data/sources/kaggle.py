@@ -11,9 +11,10 @@ class KaggleSource(DataSource):
     def __init__(self, dataset: str) -> None:
         self.dataset = dataset
 
-    def fetch(self, destination: Path) -> Path:
+    def fetch(self, destination: Path | str) -> Path:
         """Download and extract a Kaggle dataset."""
 
+        destination = Path(destination)
         destination.mkdir(parents=True, exist_ok=True)
 
         kaggle.api.dataset_download_files(

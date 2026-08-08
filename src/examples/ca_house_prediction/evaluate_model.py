@@ -6,11 +6,8 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 from ml_platform.data import DataLoader
 
-
 ARTIFACTS_DIR = (
-    Path(__file__).resolve().parents[3]
-    / "artifacts"
-    / "ca_house_prediction"
+    Path(__file__).resolve().parents[3] / "artifacts" / "ca_house_prediction"
 )
 
 DATA_DIR = ARTIFACTS_DIR / "data"
@@ -24,17 +21,13 @@ def main() -> None:
     # Load test data
     loader = DataLoader()
 
-    test_data = loader.load_csv(
-        DATA_DIR / "test.csv"
-    )
+    test_data = loader.load_csv(DATA_DIR / "test.csv")
 
     X_test = test_data[["MedInc"]]
     y_test = test_data["MedHouseVal"]
 
     # Load trained model
-    model = joblib.load(
-        MODEL_DIR / "model.pkl"
-    )
+    model = joblib.load(MODEL_DIR / "model.pkl")
 
     # Generate predictions
     y_pred = model.predict(X_test)

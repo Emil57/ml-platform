@@ -1,73 +1,95 @@
-import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import TargetEncoder
 
 from examples.f1 import FEATURE_DATA_DIR
-from examples.f1.prepare_data import df
+from examples.f1.prepare_data import prepare_data
 
 
-def add_driver_rollups(d):
-    d["driver_recent_points"] = d.groupby("driverId")["points"].transform(
-        lambda s: s.shift().rolling(5, min_periods=1).mean()
+def add_driver_rollups(data: pd.DataFrame) -> pd.DataFrame:
+    """Add recent driver performance features."""
+
+    data["driver_recent_points"] = data.groupby("driverId")["points"].transform(
+        lambda series: series.shift().rolling(5, min_periods=1).mean()
     )
-    d["driver_recent_finpos"] = d.groupby("driverId")["positionOrder"].transform(
-        lambda s: s.shift().rolling(5, min_periods=1).mean()
+
+    data["driver_recent_finpos"] = data.groupby("driverId")["positionOrder"].transform(
+        lambda series: series.shift().rolling(5, min_periods=1).mean()
     )
-    d["driver_recent_podiums"] = d.groupby("driverId")["positionOrder"].transform(
-        lambda s: (s.shift() <= 3).rolling(5, min_periods=1).sum()
+
+    data["driver_recent_podiums"] = data.groupby("driverId")["positionOrder"].transform(
+        lambda series: (series.shift() <= 3).rolling(5, min_periods=1).sum()
     )
-    d["driver_recent_dnfs"] = (
-        d.groupby("driverId")["statusId"].transform(
-            lambda s: (s.shift().isin([3, 4, 5])).rolling(5, min_periods=1).sum()
+
+    data["driver_recent_dnfs"] = (
+        data.groupby("driverId")["statusId"].transform(
+            lambda series: (series.shift().isin([3, 4, 5]))
+            .rolling(5, min_periods=1)
+            .sum()
         )
-        if "statusId" in d.columns
+        if "statusId" in data.columns
         else np.nan
     )
-    return d
+
+    return data
 
 
-def add_constructor_rollups(d):
-    d["constructor_recent_points"] = d.groupby("constructorId")["points"].transform(
-        lambda s: s.shift().rolling(5, min_periods=1).mean()
-    )
-    d["constructor_recent_finpos"] = d.groupby("constructorId")[
+def add_constructor_rollups(data: pd.DataFrame) -> pd.DataFrame:
+    """Add recent constructor performance features."""
+
+    data["constructor_recent_points"] = data.groupby("constructorId")[
+        "points"
+    ].transform(lambda series: series.shift().rolling(5, min_periods=1).mean())
+
+    data["constructor_recent_finpos"] = data.groupby("constructorId")[
         "positionOrder"
-    ].transform(lambda s: s.shift().rolling(5, min_periods=1).mean())
-    d["constructor_recent_podiums"] = d.groupby("constructorId")[
+    ].transform(lambda series: series.shift().rolling(5, min_periods=1).mean())
+
+    data["constructor_recent_podiums"] = data.groupby("constructorId")[
         "positionOrder"
-    ].transform(lambda s: (s.shift() <= 3).rolling(5, min_periods=1).sum())
-    d["constructor_recent_dnfs"] = (
-        d.groupby("constructorId")["statusId"].transform(
-            lambda s: (s.shift().isin([3, 4, 5])).rolling(5, min_periods=1).sum()
+    ].transform(lambda series: (series.shift() <= 3).rolling(5, min_periods=1).sum())
+
+    data["constructor_recent_dnfs"] = (
+        data.groupby("constructorId")["statusId"].transform(
+            lambda series: (series.shift().isin([3, 4, 5]))
+            .rolling(5, min_periods=1)
+            .sum()
         )
-        if "statusId" in d.columns
+        if "statusId" in data.columns
         else np.nan
     )
-    return d
+
+    return data
 
 
-try:
-    df = add_driver_rollups(df)
-    df = add_constructor_rollups(df)
+def feature_engineer(data: pd.DataFrame) -> tuple[
+    pd.DataFrame,
+    pd.DataFrame,
+    pd.DataFrame,
+]:
+    """Create F1 features and split data chronologically."""
 
-    if "grid" in df.columns:
-        df["grid_pos"] = df["grid"].replace(0, np.nan)
-    # 0 often means started from pit/unknown else: df["grid_pos"] = np.nan
+    data = add_driver_rollups(data)
+    data = add_constructor_rollups(data)
 
-    # 6) Target: driver won the race
-    df["won"] = (df["positionOrder"] == 1).astype(int)
+    # Convert grid position 0 to missing.
+    if "grid" in data.columns:
+        data["grid_pos"] = data["grid"].replace(0, np.nan)
 
-    # 7) Train/validation split by time (e.g., train <= 2016, validate 2017–2019,
-    # test 2020)
-    train = df[df["year"] <= 2016]
-    valid = df[(df["year"] >= 2017) & (df["year"] <= 2019)]
-    test = df[df["year"] == 2020]
+    # Target: driver won the race.
+    data["won"] = (data["positionOrder"] == 1).astype(int)
 
-    # 8) Select features (avoid leakage: no post-race info
-    # like final time, status, laps completed)
-    feat_cols = [
+    # Time-based split to prevent future data leakage.
+    train = data[data["year"] <= 2016].copy()
+
+    valid = data[(data["year"] >= 2017) & (data["year"] <= 2019)].copy()
+
+    test = data[data["year"] == 2020].copy()
+
+    # Select features while avoiding post-race information.
+    feature_columns = [
         "grid_pos",
         "driver_recent_points",
         "driver_recent_finpos",
@@ -79,43 +101,100 @@ try:
         "round",
     ]
 
-    # Handle missing values
-    for c in feat_cols:
-        train[c] = train[c].fillna(
-            train[c].median() if train[c].dtype != "O" else "UNK"
-        )
-        valid[c] = valid[c].fillna(
-            train[c].median() if train[c].dtype != "O" else "UNK"
-        )
-        test[c] = test[c].fillna(train[c].median() if train[c].dtype != "O" else "UNK")
+    # Fill missing values using statistics calculated from training data.
+    for column in feature_columns:
+        if train[column].dtype != "O":
+            median = train[column].median()
 
-    # 9) Encode high-cardinality categoricals with target encoding (avoid leakage: fit
-    # on train only)
-    cat_cols = ["constructorId", "driverId", "circuitId"]
-    te = TargetEncoder(smooth=0.3)
-    train_te = te.fit_transform(train[cat_cols], train["won"])
-    valid_te = te.transform(valid[cat_cols])
-    test_te = te.transform(test[cat_cols])
+            train[column] = train[column].fillna(median)
+            valid[column] = valid[column].fillna(median)
+            test[column] = test[column].fillna(median)
+        else:
+            train[column] = train[column].fillna("UNK")
+            valid[column] = valid[column].fillna("UNK")
+            test[column] = test[column].fillna("UNK")
 
-    # Save featured data
-    os.makedirs(FEATURE_DATA_DIR, exist_ok=True)
-    train_te = pd.DataFrame(
-        te.fit_transform(train[feat_cols], train["won"]),
-        columns=feat_cols,
+    # Target encoding for categorical features.
+    categorical_columns = [
+        "constructorId",
+        "driverId",
+        "circuitId",
+    ]
+
+    encoder = TargetEncoder(smooth=0.3)
+
+    train_encoded = encoder.fit_transform(
+        train[categorical_columns],
+        train["won"],
+    )
+
+    valid_encoded = encoder.transform(
+        valid[categorical_columns],
+    )
+
+    test_encoded = encoder.transform(
+        test[categorical_columns],
+    )
+
+    # Convert encoded categorical features to DataFrames.
+    train_encoded = pd.DataFrame(
+        train_encoded,
+        columns=categorical_columns,
         index=train.index,
     )
-    valid_te = pd.DataFrame(
-        te.transform(valid[feat_cols]), columns=feat_cols, index=valid.index
-    )
-    test_te = pd.DataFrame(
-        te.transform(test[feat_cols]), columns=feat_cols, index=test.index
+
+    valid_encoded = pd.DataFrame(
+        valid_encoded,
+        columns=categorical_columns,
+        index=valid.index,
     )
 
-    train_te.to_csv(os.path.join(FEATURE_DATA_DIR, "train.csv"), index=False)
-    valid_te.to_csv(os.path.join(FEATURE_DATA_DIR, "valid.csv"), index=False)
-    test_te.to_csv(os.path.join(FEATURE_DATA_DIR, "test.csv"), index=False)
+    test_encoded = pd.DataFrame(
+        test_encoded,
+        columns=categorical_columns,
+        index=test.index,
+    )
 
-    print(f"Saved featured data to {FEATURE_DATA_DIR}")
-except Exception as e:
-    print(f"Error in feature engineering: {e}")
-    raise
+    # Replace categorical columns with their encoded values.
+    train[categorical_columns] = train_encoded
+    valid[categorical_columns] = valid_encoded
+    test[categorical_columns] = test_encoded
+
+    # Keep only the final feature columns.
+    train_features = train[feature_columns + ["won"]]
+    valid_features = valid[feature_columns + ["won"]]
+    test_features = test[feature_columns + ["won"]]
+
+    return train_features, valid_features, test_features
+
+
+def main() -> None:
+    """Run F1 feature engineering and save the resulting datasets."""
+
+    data = prepare_data()
+
+    train, valid, test = feature_engineer(data)
+
+    output_dir = Path(FEATURE_DATA_DIR)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    train.to_csv(
+        output_dir / "train.csv",
+        index=False,
+    )
+
+    valid.to_csv(
+        output_dir / "valid.csv",
+        index=False,
+    )
+
+    test.to_csv(
+        output_dir / "test.csv",
+        index=False,
+    )
+
+    print(f"Saved featured data to {output_dir}")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,19 +1,32 @@
-"F1 artifacts and files"
+"""F1 artifacts and files."""
 
-import os
+from pathlib import Path
 
 KAGGLE_DATASET = "rohanrao/formula-1-world-championship-1950-2020"
 
-RAW_DATA_DIR = os.path.join(os.path.abspath("../../"), "artifacts", "f1", "data", "raw")
 
-PREPARED_DATA_DIR = os.path.join(
-    os.path.abspath("../../"), "artifacts", "f1", "data", "prepared"
-)
+# Repository root:
+# machine-learning/
+# └── src/
+#     └── examples/
+#         └── f1/
+#             └── __init__.py
+#
+# parents[0] = f1
+# parents[1] = examples
+# parents[2] = src
+# parents[3] = machine-learning
 
-FEATURE_DATA_DIR = os.path.join(
-    os.path.abspath("../../"), "artifacts", "f1", "data", "featured"
-)
+REPO_ROOT = Path(__file__).resolve().parents[3]
 
-MODELS_DIR = os.path.join(os.path.abspath("../../"), "artifacts", "f1", "models")
+ARTIFACTS_DIR = REPO_ROOT / "artifacts" / "f1"
 
-METRICS_DIR = os.path.join(os.path.abspath("../../"), "artifacts", "f1", "metrics")
+RAW_DATA_DIR = ARTIFACTS_DIR / "data" / "raw"
+
+PREPARED_DATA_DIR = ARTIFACTS_DIR / "data" / "prepared"
+
+FEATURE_DATA_DIR = ARTIFACTS_DIR / "data" / "featured"
+
+MODELS_DIR = ARTIFACTS_DIR / "models"
+
+METRICS_DIR = ARTIFACTS_DIR / "metrics"

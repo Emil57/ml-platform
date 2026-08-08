@@ -1,7 +1,6 @@
-from tkinter import _test
-
 import pandas as pd
 import pytest
+
 from ml_platform.data import DataLoader
 
 
@@ -21,6 +20,7 @@ def test_load_csv(tmp_path):
     result = loader.load_csv(file_path)
 
     pd.testing.assert_frame_equal(result, dataset)
+
 
 def test_load_csv_file_not_found():
     loader = DataLoader()

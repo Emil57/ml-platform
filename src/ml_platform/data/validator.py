@@ -18,9 +18,7 @@ class DataValidator:
         missing_columns = set(required_columns) - set(data.columns)
 
         if missing_columns:
-            raise ValueError(
-                f"Missing required columns: {sorted(missing_columns)}"
-            )
+            raise ValueError(f"Missing required columns: {sorted(missing_columns)}")
 
     def validate_no_missing_values(self, data: pd.DataFrame) -> None:
         """Ensure the dataset contains no missing values."""

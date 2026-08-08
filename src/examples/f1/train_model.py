@@ -1,28 +1,83 @@
-import os
+from pathlib import Path
 
 import joblib
+import pandas as pd
 from sklearn.calibration import CalibratedClassifierCV
+from sklearn.frozen import FrozenEstimator
 from sklearn.linear_model import SGDClassifier
 
-from examples.f1 import MODELS_DIR
-from examples.f1.feature_engineering import train, train_te, valid, valid_te
+from examples.f1 import FEATURE_DATA_DIR, MODELS_DIR
 
-try:
-    clf = SGDClassifier(
-        loss="log_loss",  # logistic regression
-        max_iter=1000,  # number of iterations
-        class_weight={0: 1.0, 1: 20.0},  # handle imbalance
+
+def load_training_data() -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Load featured training and validation datasets."""
+
+    feature_data_dir = Path(FEATURE_DATA_DIR)
+
+    train_path = feature_data_dir / "train.csv"
+    valid_path = feature_data_dir / "valid.csv"
+
+    if not train_path.exists():
+        raise FileNotFoundError(f"Training dataset not found: {train_path}")
+
+    if not valid_path.exists():
+        raise FileNotFoundError(f"Validation dataset not found: {valid_path}")
+
+    train = pd.read_csv(train_path)
+    valid = pd.read_csv(valid_path)
+
+    return train, valid
+
+
+def train_model(
+    train: pd.DataFrame,
+    valid: pd.DataFrame,
+) -> CalibratedClassifierCV:
+    """Train and calibrate the F1 classification model."""
+
+    target_column = "won"
+
+    X_train = train.drop(columns=[target_column])
+    y_train = train[target_column]
+
+    X_valid = valid.drop(columns=[target_column])
+    y_valid = valid[target_column]
+
+    classifier = SGDClassifier(
+        loss="log_loss",
+        max_iter=1000,
+        class_weight={0: 1.0, 1: 20.0},
         random_state=42,
     )
-    clf.fit(train_te, train["won"])
 
-    # 11) Probability calibration (Platt scaling on validation)
-    calibrated = CalibratedClassifierCV(estimator=clf, method="sigmoid", cv="prefit")
-    calibrated.fit(valid_te, valid["won"])
+    classifier.fit(X_train, y_train)
 
-    os.makedirs(MODELS_DIR, exist_ok=True)
-    joblib.dump(calibrated, f"{MODELS_DIR}/model.pkl")
-    print(f"Saved model to {MODELS_DIR}")
-except Exception as e:
-    print(f"Error in feature engineering: {e}")
-    raise
+    calibrated = CalibratedClassifierCV(
+        estimator=FrozenEstimator(classifier),
+        method="sigmoid",
+    )
+
+    calibrated.fit(X_valid, y_valid)
+
+    return calibrated
+
+
+def main() -> None:
+    """Train the F1 model and save it."""
+
+    train, valid = load_training_data()
+
+    model = train_model(train, valid)
+
+    models_dir = Path(MODELS_DIR)
+    models_dir.mkdir(parents=True, exist_ok=True)
+
+    model_path = models_dir / "model.pkl"
+
+    joblib.dump(model, model_path)
+
+    print(f"Saved model to {model_path}")
+
+
+if __name__ == "__main__":
+    main()
