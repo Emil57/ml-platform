@@ -1,0 +1,34 @@
+stages:
+  get_data:
+    cmd: python get_data.py
+    deps:
+      - get_data.py
+    outs:
+      - ../../../artifacts/ca_house_prediction/data/housing.csv
+
+  prepare:
+    cmd: python prepare_data.py
+    deps:
+      - prepare_data.py
+      - ../../../artifacts/ca_house_prediction/data/housing.csv
+    outs:
+      - ../../../artifacts/ca_house_prediction/data/train.csv
+      - ../../../artifacts/ca_house_prediction/data/validation.csv
+      - ../../../artifacts/ca_house_prediction/data/test.csv
+
+  train:
+    cmd: python train_model.py
+    deps:
+      - train_model.py
+      - ../../../artifacts/ca_house_prediction/data/train.csv
+      - ../../../artifacts/ca_house_prediction/data/validation.csv
+    outs:
+      - ../../../artifacts/ca_house_prediction/models/model.pkl
+
+  evaluate:
+    cmd: python evaluate_model.py
+    deps:
+      - evaluate_model.py
+      - ../../../artifacts/ca_house_prediction/models/model.pkl
+    metrics:
+      - ../../../artifacts/ca_house_prediction/metrics/metrics.json
