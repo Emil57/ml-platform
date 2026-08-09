@@ -6,7 +6,7 @@ from sklearn.calibration import CalibratedClassifierCV
 from sklearn.frozen import FrozenEstimator
 from sklearn.linear_model import SGDClassifier
 
-from examples.f1 import FEATURE_DATA_DIR, MODELS_DIR
+from pipelines.f1 import FEATURE_DATA_DIR, MODELS_DIR
 
 
 def load_training_data() -> tuple[pd.DataFrame, pd.DataFrame]:

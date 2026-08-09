@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from examples.f1 import PREPARED_DATA_DIR, RAW_DATA_DIR
+from pipelines.f1 import PREPARED_DATA_DIR, RAW_DATA_DIR
 from ml_platform.data import DataLoader, DataValidator
 
 

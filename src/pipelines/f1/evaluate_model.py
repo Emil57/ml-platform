@@ -11,7 +11,7 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
-from examples.f1 import FEATURE_DATA_DIR, METRICS_DIR, MODELS_DIR
+from pipelines.f1 import FEATURE_DATA_DIR, METRICS_DIR, MODELS_DIR
 
 
 def load_test_data() -> pd.DataFrame:

@@ -1,4 +1,4 @@
-from examples.f1 import KAGGLE_DATASET, RAW_DATA_DIR
+from pipelines.f1 import KAGGLE_DATASET, RAW_DATA_DIR
 from ml_platform.data.sources import KaggleSource
 
 

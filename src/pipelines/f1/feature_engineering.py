@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import TargetEncoder
 
-from examples.f1 import FEATURE_DATA_DIR
-from examples.f1.prepare_data import prepare_data
+from pipelines.f1 import FEATURE_DATA_DIR
+from pipelines.f1.prepare_data import prepare_data
 
 
 def add_driver_rollups(data: pd.DataFrame) -> pd.DataFrame:
