@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from pipelines.f1 import PREPARED_DATA_DIR, RAW_DATA_DIR
 from ml_platform.data import DataLoader, DataValidator
+from pipelines.f1 import PREPARED_DATA_DIR, RAW_DATA_DIR
 
 
 def prepare_data() -> pd.DataFrame:

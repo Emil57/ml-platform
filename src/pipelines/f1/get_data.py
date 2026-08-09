@@ -1,5 +1,5 @@
-from pipelines.f1 import KAGGLE_DATASET, RAW_DATA_DIR
 from ml_platform.data.sources import KaggleSource
+from pipelines.f1 import KAGGLE_DATASET, RAW_DATA_DIR
 
 
 def main() -> None:
