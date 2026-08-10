@@ -1,16 +1,17 @@
 from pathlib import Path
 
+import pandas as pd
 from sklearn.linear_model import LinearRegression
 
+from ml_platform.artifacts import ArtifactManager
 from ml_platform.data import DataLoader
 from ml_platform.training import Trainer
 
 DATA_DIR = (
-    Path(__file__).resolve().parents[3] / "artifacts" / "ca_house_prediction" / "data"
-)
-
-MODEL_DIR = (
-    Path(__file__).resolve().parents[3] / "artifacts" / "ca_house_prediction" / "models"
+    Path(__file__).resolve().parents[3]
+    / "artifacts"
+    / "ca_house_prediction"
+    / "data"
 )
 
 
@@ -19,25 +20,32 @@ def main() -> None:
 
     loader = DataLoader()
 
-    train_data = loader.load_csv(DATA_DIR / "train.csv")
+    train_data = loader.load_csv(
+        DATA_DIR / "train.csv"
+    )
 
     X_train = train_data[["MedInc"]]
     y_train = train_data["MedHouseVal"]
 
-    print(f"Data Shape: {X_train.shape}, " f"{y_train.shape}")
+    print(
+        f"Data Shape: {X_train.shape}, "
+        f"{y_train.shape}"
+    )
 
     model = LinearRegression()
 
     trainer = Trainer(model)
 
     trainer.train(
-        X_train=X_train,
-        y_train=y_train,
+        X_train,
+        y_train,
     )
 
-    model_path = MODEL_DIR / "model.pkl"
+    artifact_manager = ArtifactManager(
+        "ca_house_prediction"
+    )
 
-    trainer.save(model_path)
+    model_path = artifact_manager.save_model(model)
 
     print(f"Model saved to {model_path}")
 

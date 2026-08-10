@@ -49,8 +49,8 @@ stages:
       size: 54983
     - path: train_model.py
       hash: md5
-      md5: 1aff210d5764a4d8bcf15e8b2f615011
-      size: 1001
+      md5: 65ab24149ba9d620721ba7089deeb878
+      size: 1061
     outs:
     - path: ../../../artifacts/ca_house_prediction/models/model.pkl
       hash: md5
@@ -65,8 +65,8 @@ stages:
       size: 895
     - path: evaluate_model.py
       hash: md5
-      md5: d1cdd124d8f2c9ff973643a1fa2dc1f2
-      size: 1031
+      md5: 016cd889e797ace7b285f86376162de8
+      size: 1138
     outs:
     - path: ../../../artifacts/ca_house_prediction/metrics/metrics.json
       hash: md5
