@@ -1,0 +1,170 @@
+schema: '2.0'
+stages:
+  get_data:
+    cmd: python get_data.py
+    deps:
+    - path: get_data.py
+      hash: md5
+      md5: 509375bf6cf110f39c1d62a07feeb2a6
+      size: 366
+    outs:
+    - path: ../../../artifacts/f1/data/raw/circuits.csv
+      hash: md5
+      md5: acf6bf0e3223d88c5a10c72f9a918674
+      size: 10104
+    - path: ../../../artifacts/f1/data/raw/constructor_results.csv
+      hash: md5
+      md5: 3799e02130b8f062c34dd670e202b632
+      size: 219365
+    - path: ../../../artifacts/f1/data/raw/constructor_standings.csv
+      hash: md5
+      md5: 2c1a75f5afb7fd7e2ebe27de6191d0c0
+      size: 317206
+    - path: ../../../artifacts/f1/data/raw/constructors.csv
+      hash: md5
+      md5: 5e5fd44ce3bad5d49ba0f06ab50f0b54
+      size: 17478
+    - path: ../../../artifacts/f1/data/raw/driver_standings.csv
+      hash: md5
+      md5: 2b99c4efaa7667a894552e4a2bb87bbb
+      size: 883771
+    - path: ../../../artifacts/f1/data/raw/drivers.csv
+      hash: md5
+      md5: b2b99a01466307dc95c6f273b8781778
+      size: 94367
+    - path: ../../../artifacts/f1/data/raw/lap_times.csv
+      hash: md5
+      md5: 11c54c53641190d566b33f7a843b9c7e
+      size: 17622395
+    - path: ../../../artifacts/f1/data/raw/pit_stops.csv
+      hash: md5
+      md5: e96f79c1c66a36a8707f0db47972d443
+      size: 443719
+    - path: ../../../artifacts/f1/data/raw/qualifying.csv
+      hash: md5
+      md5: 2abc6140414c276378ab25ae662c9814
+      size: 465231
+    - path: ../../../artifacts/f1/data/raw/races.csv
+      hash: md5
+      md5: 8895dc8ff7cd4d4ae1072130b80b7fdc
+      size: 164344
+    - path: ../../../artifacts/f1/data/raw/results.csv
+      hash: md5
+      md5: 2fa0062e049e04de1236411bb240e220
+      size: 1721961
+    - path: ../../../artifacts/f1/data/raw/seasons.csv
+      hash: md5
+      md5: c25eb7fd5193e5c72a43866c6d290358
+      size: 4594
+    - path: ../../../artifacts/f1/data/raw/sprint_results.csv
+      hash: md5
+      md5: a6651f657dacbc53066330637fe257f5
+      size: 24732
+    - path: ../../../artifacts/f1/data/raw/status.csv
+      hash: md5
+      md5: 73878c3fa86488223c66616051b37181
+      size: 2136
+  prepare:
+    cmd: python prepare_data.py
+    deps:
+    - path: ../../../artifacts/f1/data/raw/circuits.csv
+      hash: md5
+      md5: acf6bf0e3223d88c5a10c72f9a918674
+      size: 10104
+    - path: ../../../artifacts/f1/data/raw/constructor_results.csv
+      hash: md5
+      md5: 3799e02130b8f062c34dd670e202b632
+      size: 219365
+    - path: ../../../artifacts/f1/data/raw/constructors.csv
+      hash: md5
+      md5: 5e5fd44ce3bad5d49ba0f06ab50f0b54
+      size: 17478
+    - path: ../../../artifacts/f1/data/raw/drivers.csv
+      hash: md5
+      md5: b2b99a01466307dc95c6f273b8781778
+      size: 94367
+    - path: ../../../artifacts/f1/data/raw/qualifying.csv
+      hash: md5
+      md5: 2abc6140414c276378ab25ae662c9814
+      size: 465231
+    - path: ../../../artifacts/f1/data/raw/races.csv
+      hash: md5
+      md5: 8895dc8ff7cd4d4ae1072130b80b7fdc
+      size: 164344
+    - path: ../../../artifacts/f1/data/raw/results.csv
+      hash: md5
+      md5: 2fa0062e049e04de1236411bb240e220
+      size: 1721961
+    - path: prepare_data.py
+      hash: md5
+      md5: a157869bfadc01b62d525aecd0aad65b
+      size: 2243
+    outs:
+    - path: ../../../artifacts/f1/data/prepared/prepared_data.csv
+      hash: md5
+      md5: f7852b909fd9238027870ff230ea9654
+      size: 9954973
+  feature_engineering:
+    cmd: python feature_engineering.py
+    deps:
+    - path: ../../../artifacts/f1/data/prepared/prepared_data.csv
+      hash: md5
+      md5: f7852b909fd9238027870ff230ea9654
+      size: 9954973
+    - path: feature_engineering.py
+      hash: md5
+      md5: f5247df04ec9067d0ddbb336afa7cb8d
+      size: 5792
+    outs:
+    - path: ../../../artifacts/f1/data/featured/test.csv
+      hash: md5
+      md5: 5e17c29e6c83ff67d02b91771d6963b1
+      size: 30252
+    - path: ../../../artifacts/f1/data/featured/train.csv
+      hash: md5
+      md5: 6bf005f46be707d49185ab8b6ab60d38
+      size: 2103682
+    - path: ../../../artifacts/f1/data/featured/valid.csv
+      hash: md5
+      md5: d329e88f2bc830337849f00b8c09e574
+      size: 110931
+  train:
+    cmd: python train_model.py
+    deps:
+    - path: ../../../artifacts/f1/data/featured/train.csv
+      hash: md5
+      md5: 6bf005f46be707d49185ab8b6ab60d38
+      size: 2103682
+    - path: ../../../artifacts/f1/data/featured/valid.csv
+      hash: md5
+      md5: d329e88f2bc830337849f00b8c09e574
+      size: 110931
+    - path: train_model.py
+      hash: md5
+      md5: bad0bcd5f1762d5bb1d9bfb105e37a5e
+      size: 2049
+    outs:
+    - path: ../../../artifacts/f1/models/model.pkl
+      hash: md5
+      md5: a4ebca59236524312730ec6cf0c52b5d
+      size: 2508
+  evaluate:
+    cmd: python evaluate_model.py
+    deps:
+    - path: ../../../artifacts/f1/data/featured/test.csv
+      hash: md5
+      md5: 5e17c29e6c83ff67d02b91771d6963b1
+      size: 30252
+    - path: ../../../artifacts/f1/models/model.pkl
+      hash: md5
+      md5: a4ebca59236524312730ec6cf0c52b5d
+      size: 2508
+    - path: evaluate_model.py
+      hash: md5
+      md5: 48db725e749bedd6e83d6ef24425b228
+      size: 1998
+    outs:
+    - path: ../../../artifacts/f1/metrics/metrics.json
+      hash: md5
+      md5: 5f4d4dd294deef28f236d81a41134651
+      size: 193

@@ -1,0 +1,74 @@
+schema: '2.0'
+stages:
+  get_data:
+    cmd: python get_data.py
+    deps:
+    - path: get_data.py
+      hash: md5
+      md5: 8bdb0b623cbb494778a489c42a166949
+      size: 498
+    outs:
+    - path: ../../../artifacts/ca_house_prediction/data/housing.csv
+      hash: md5
+      md5: d1c47305887e2252bf1ccbd74ff159a6
+      size: 1423529
+  prepare:
+    cmd: python prepare_data.py
+    deps:
+    - path: ../../../artifacts/ca_house_prediction/data/housing.csv
+      hash: md5
+      md5: d1c47305887e2252bf1ccbd74ff159a6
+      size: 1423529
+    - path: prepare_data.py
+      hash: md5
+      md5: 0934ade5ed5281bfc05fc0ef039f96d1
+      size: 1776
+    outs:
+    - path: ../../../artifacts/ca_house_prediction/data/test.csv
+      hash: md5
+      md5: 04e53eed84ab8d1a69c6d20294b38653
+      size: 68590
+    - path: ../../../artifacts/ca_house_prediction/data/train.csv
+      hash: md5
+      md5: 7cd8ba25f2f6dc33ae5442b22b9949f7
+      size: 219595
+    - path: ../../../artifacts/ca_house_prediction/data/validation.csv
+      hash: md5
+      md5: 9a3eb7598be3f5520f651be91390ca67
+      size: 54983
+  train:
+    cmd: python train_model.py
+    deps:
+    - path: ../../../artifacts/ca_house_prediction/data/train.csv
+      hash: md5
+      md5: 7cd8ba25f2f6dc33ae5442b22b9949f7
+      size: 219595
+    - path: ../../../artifacts/ca_house_prediction/data/validation.csv
+      hash: md5
+      md5: 9a3eb7598be3f5520f651be91390ca67
+      size: 54983
+    - path: train_model.py
+      hash: md5
+      md5: 77eaec969824e5174ee2210abd02e6b4
+      size: 954
+    outs:
+    - path: ../../../artifacts/ca_house_prediction/models/model.pkl
+      hash: md5
+      md5: 33ef505b9f268a75a579c839595cdf61
+      size: 895
+  evaluate:
+    cmd: python evaluate_model.py
+    deps:
+    - path: ../../../artifacts/ca_house_prediction/models/model.pkl
+      hash: md5
+      md5: 33ef505b9f268a75a579c839595cdf61
+      size: 895
+    - path: evaluate_model.py
+      hash: md5
+      md5: 30673b5e0e061872e880efc459c07981
+      size: 1560
+    outs:
+    - path: ../../../artifacts/ca_house_prediction/metrics/metrics.json
+      hash: md5
+      md5: a400bd2c26c0b1d31add0d0d902213e9
+      size: 181

@@ -15,7 +15,7 @@ venv/
 .idea/
 
 # Data and models (DVC will manage data; keep local copies if desired)
-data/
+artifacts/
 models/
 metrics/
 # Byte-compiled / optimized / DLL files
