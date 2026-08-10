@@ -1,11 +1,12 @@
 from pathlib import Path
 
-import joblib
 import pandas as pd
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.frozen import FrozenEstimator
 from sklearn.linear_model import SGDClassifier
 
+from ml_platform.config import settings
+from ml_platform.training.trainer import Trainer
 from pipelines.f1 import FEATURE_DATA_DIR, MODELS_DIR
 
 
@@ -47,17 +48,30 @@ def train_model(
         loss="log_loss",
         max_iter=1000,
         class_weight={0: 1.0, 1: 20.0},
-        random_state=42,
+        random_state=settings.random_seed,
     )
 
-    classifier.fit(X_train, y_train)
+    # Use the shared training framework for model training.
+    classifier_trainer = Trainer(classifier)
 
+    classifier_trainer.train(
+        X_train=X_train,
+        y_train=y_train,
+    )
+
+    # Calibration is F1-specific logic, so it remains
+    # inside the F1 pipeline rather than inside Trainer.
     calibrated = CalibratedClassifierCV(
         estimator=FrozenEstimator(classifier),
         method="sigmoid",
     )
 
-    calibrated.fit(X_valid, y_valid)
+    calibrated_trainer = Trainer(calibrated)
+
+    calibrated_trainer.train(
+        X_train=X_valid,
+        y_train=y_valid,
+    )
 
     return calibrated
 
@@ -70,11 +84,11 @@ def main() -> None:
     model = train_model(train, valid)
 
     models_dir = Path(MODELS_DIR)
-    models_dir.mkdir(parents=True, exist_ok=True)
-
     model_path = models_dir / "model.pkl"
 
-    joblib.dump(model, model_path)
+    # Use the shared Trainer for model persistence as well.
+    trainer = Trainer(model)
+    trainer.save(model_path)
 
     print(f"Saved model to {model_path}")
 

@@ -2,726 +2,139 @@
 
 A production-oriented Machine Learning Platform that evolves from individual ML experiments into a reusable, testable, and reproducible ML system.
 
-The project currently contains reusable ML infrastructure, model-specific pipelines, automated testing, code quality checks, and DVC-based pipeline orchestration.
+The project separates reusable ML infrastructure from model-specific pipelines.
 
-# Project Architecture
+## Architecture
 
-The repository separates reusable ML platform components from model-specific pipelines.
-```
+```text
 machine-learning/
 │
 ├── artifacts/
 │   ├── f1/
-│   │   ├── data/
-│   │   │   ├── raw/
-│   │   │   ├── prepared/
-│   │   │   └── featured/
-│   │   ├── models/
-│   │   └── metrics/
-│   │
 │   └── ca_house_prediction/
-│       ├── data/
-│       │   ├── raw/
-│       │   └── prepared/
-│       ├── models/
-│       └── metrics/
 │
 ├── src/
 │   ├── ml_platform/
 │   │   ├── config/
 │   │   ├── data/
-│   │   │   ├── loader.py
-│   │   │   ├── splitter.py
-│   │   │   ├── validator.py
-│   │   │   └── source/
-│   │   │       ├── base.py
-│   │   │       └── kaggle.py
-│   │   └── ...
+│   │   ├── exceptions/
+│   │   ├── training/
+│   │   └── utils/
 │   │
 │   └── pipelines/
 │       ├── f1/
-│       │   ├── dvc.yaml
-│       │   ├── get_data.py
-│       │   ├── prepare_data.py
-│       │   ├── feature_engineering.py
-│       │   ├── train_model.py
-│       │   └── evaluate_model.py
-│       │
 │       └── ca_house_prediction/
-│           ├── dvc.yaml
-│           ├── get_data.py
-│           ├── prepare_data.py
-│           ├── train_model.py
-│           └── evaluate_model.py
 │
-├── tests/
+├── docs/
 ├── pyproject.toml
 ├── uv.lock
 └── README.md
 ```
-## Platform Architecture
 
-The repository is organized around a reusable Machine Learning Platform rather than individual ML projects.
+## Platform
 
-The `ml_platform` package contains reusable infrastructure that will be shared across future machine learning applications.
+The `ml_platform` package contains reusable infrastructure shared across ML projects.
 
-Current platform modules include:
+Current components:
 
-- Configuration
-- Data
-- Models
-- Training
-- Evaluation
-- Utilities
+* Configuration management
+* Centralized exceptions
+* Centralized logging
+* Data management
+* Training framework
+* Model persistence
+* Testing utilities
 
-Additional platform capabilities will be introduced incrementally throughout the project roadmap.
+See the [Platform Documentation](src/ml_platform/README.md).
 
-## Configuration
+## Data Management
 
-The platform uses `pydantic-settings` to centralize configuration.
+The shared data-management layer provides:
 
-Configuration values can be supplied through environment variables with the `ML_` prefix.
+* Data source abstractions
+* Kaggle integration
+* Dataset loading
+* Data validation
+* Train/validation/test splitting
 
-Example:
+See the [Data Management Documentation](src/ml_platform/data/README.md).
+
+## Training Framework
+
+The shared training framework provides:
+
+* Standardized model training
+* Centralized logging
+* Training error handling
+* Model persistence
+
+See the [Training Framework Documentation](src/ml_platform/training/README.md).
+
+## Example Pipelines
+
+### Formula 1
+
+A classification pipeline that predicts whether a Formula 1 driver will win a race.
+
+See the [F1 Pipeline Documentation](src/pipelines/f1/README.md).
+
+### California Housing
+
+A regression pipeline that predicts California housing prices.
+
+See the [California Housing Documentation](src/pipelines/ca_house_prediction/README.md).
+
+## DVC
+
+Each ML pipeline has its own DVC pipeline.
 
 ```bash
-ML_DEBUG=true
-ML_RANDOM_SEED=123
-```
-
-Applications should import the shared configuration instance:
-
-```python
-from ml_platform.config import settings
-
-print(settings.environment)
-```
-
-## Data Management Layer
-
-The `ml_platform.data` package provides reusable components for acquiring, loading, validating, and splitting datasets across machine learning projects.
-
-The goal of this layer is to centralize common data-management functionality so that individual ML projects do not need to implement their own dataset loading, validation, and splitting logic.
-
-### Architecture
-
-```text
-                    ml_platform.data
-                           │
-             ┌─────────────┼─────────────┐
-             │             │             │
-             ▼             ▼             ▼
-        DataLoader    DataValidator  DataSplitter
-             │             │             │
-             └─────────────┼─────────────┘
-                           │
-                           ▼
-                      ML Pipeline
-```
-
-Data acquisition is separated from data loading:
-
-```text
-                    Data Sources
-                         │
-                ┌────────┴────────┐
-                │                 │
-                ▼                 ▼
-             Kaggle             Local
-                │                 │
-                └────────┬────────┘
-                         ▼
-                    DataLoader
-                         │
-                         ▼
-                  DataValidator
-                         │
-                         ▼
-                    DataSplitter
-                    /    |     \
-                   /     |      \
-                train   validation  test
-```
-
-### Package Structure
-
-```text
-src/
-└── ml_platform/
-    └── data/
-        ├── __init__.py
-        ├── loader.py
-        ├── splitter.py
-        ├── validator.py
-        │
-        ├── sources/
-        │   ├── __init__.py
-        │   ├── base.py
-        │   └── kaggle.py
-        │
-        └── tests/
-            ├── test_loader.py
-            ├── test_splitter.py
-            └── test_validator.py
-```
-
-### Data Sources
-
-The `sources` package provides an abstraction for acquiring datasets from external or local sources.
-
-The base `DataSource` interface defines the contract that data sources must implement:
-
-```python
-from abc import ABC, abstractmethod
-from pathlib import Path
-
-
-class DataSource(ABC):
-    """Interface for dataset sources."""
-
-    @abstractmethod
-    def fetch(self, destination: Path) -> Path:
-        """Fetch data and return the local path."""
-        raise NotImplementedError
-```
-
-This allows different data providers to be implemented without coupling the rest of the platform to a specific provider.
-
-Currently supported sources include:
-
-* Kaggle
-* Local filesystem
-
-Additional sources such as cloud object storage or databases can be added in the future without changing the rest of the data-management layer.
-
-### Kaggle Data Source
-
-The Kaggle source encapsulates communication with the Kaggle API.
-
-Example:
-
-```python
-from pathlib import Path
-
-from ml_platform.data.sources.kaggle import KaggleSource
-
-
-source = KaggleSource(
-    "owner/dataset-name"
-)
-
-data_path = source.fetch(
-    Path("data/raw")
-)
-```
-
-The Kaggle-specific authentication and download logic remains inside the source implementation rather than being duplicated across individual ML projects.
-
-### Data Loader
-
-`DataLoader` is responsible for loading datasets from local files into pandas DataFrames.
-
-For example:
-
-```python
-from ml_platform.data import DataLoader
-
-
-loader = DataLoader()
-
-data = loader.load_csv(
-    "data/raw/dataset.csv"
-)
-```
-
-The loader validates that the requested file exists before attempting to read it.
-
-A missing dataset results in a `FileNotFoundError`.
-
-### Data Validator
-
-`DataValidator` provides reusable checks that can be performed before data enters the ML pipeline.
-
-#### Empty datasets
-
-```python
-validator.validate_not_empty(data)
-```
-
-Raises a `ValueError` when the dataset contains no rows.
-
-#### Required columns
-
-```python
-validator.validate_columns(
-    data,
-    ["feature_1", "feature_2", "target"],
-)
-```
-
-Raises a `ValueError` when one or more required columns are missing.
-
-#### Missing values
-
-```python
-validator.validate_no_missing_values(data)
-```
-
-Raises a `ValueError` when missing values are detected.
-
-These validations provide a common baseline for data quality checks while keeping project-specific validation rules inside the individual ML projects.
-
-### Data Splitter
-
-`DataSplitter` provides a standardized way of splitting datasets into training, validation, and test sets.
-
-Example:
-
-```python
-from ml_platform.data import DataSplitter
-
-
-splitter = DataSplitter()
-
-train, validation, test = splitter.split(
-    data,
-)
-```
-
-The default configuration produces approximately:
-
-```text
-64% → Training
-16% → Validation
-20% → Test
-```
-
-The splitter uses the centralized `settings.random_seed` value by default to ensure reproducibility across the platform.
-
-A custom seed can still be provided when required for experimentation:
-
-```python
-train, validation, test = splitter.split(
-    data,
-    random_state=123,
-)
-```
-
-### Typical Data Pipeline
-
-An ML project can combine these components into a standard data-management workflow:
-
-```python
-from pathlib import Path
-
-from ml_platform.data import (
-    DataLoader,
-    DataSplitter,
-    DataValidator,
-)
-from ml_platform.data.sources.kaggle import KaggleSource
-
-
-# 1. Acquire data
-source = KaggleSource("owner/dataset-name")
-source.fetch(Path("data/raw"))
-
-
-# 2. Load data
-loader = DataLoader()
-data = loader.load_csv("data/raw/dataset.csv")
-
-
-# 3. Validate data
-validator = DataValidator()
-
-validator.validate_not_empty(data)
-
-validator.validate_columns(
-    data,
-    ["feature_1", "feature_2", "target"],
-)
-
-validator.validate_no_missing_values(data)
-
-
-# 4. Split data
-splitter = DataSplitter()
-
-train, validation, test = splitter.split(data)
-```
-
-This establishes a standardized flow:
-
-```text
-Data Acquisition
-       ↓
-Data Loading
-       ↓
-Data Validation
-       ↓
-Train / Validation / Test Split
-       ↓
-Model Training
-```
-
-### Separation of Responsibilities
-
-The data-management layer intentionally separates several responsibilities:
-
-| Component       | Responsibility                                      |
-| --------------- | --------------------------------------------------- |
-| `DataSource`    | Defines the interface for obtaining datasets        |
-| `KaggleSource`  | Downloads datasets from Kaggle                      |
-| `DataLoader`    | Loads local dataset files into DataFrames           |
-| `DataValidator` | Performs common data-quality checks                 |
-| `DataSplitter`  | Creates reproducible train/validation/test datasets |
-| DVC             | Handles dataset versioning and reproducibility      |
-
-Kaggle is therefore treated as a **data acquisition mechanism**, while DVC remains responsible for **dataset versioning**.
-
-This separation allows an ML project to change its data source without changing its training or validation logic.
-
-### Testing
-
-Each component of the data-management layer has dedicated unit tests.
-
-```text
-src/ml_platform/data/tests/
-├── test_loader.py
-├── test_splitter.py
-└── test_validator.py
-```
-
-The tests cover:
-
-* Successful CSV loading
-* Missing dataset files
-* Empty datasets
-* Missing required columns
-* Missing values
-* Dataset splitting
-* Preservation of all dataset rows
-* Reproducibility of dataset splits
-
-The complete test suite can be executed with:
-
-```bash
-uv run pytest
-```
-
-Code quality checks can be executed with:
-
-```bash
-uv run ruff check .
-uv run black --check .
-uv run mypy src/
-```
-
-### Design Direction
-
-The current implementation establishes the foundation for a reusable data-management layer.
-
-Future data sources can be added through the `DataSource` abstraction:
-
-```text
-DataSource
-├── KaggleSource
-├── LocalSource
-├── S3Source
-├── GCSDataSource
-└── DatabaseSource
-```
-
-Future iterations may also introduce:
-
-* Additional data-quality checks
-* Dataset schemas
-* Dataset metadata
-* Cloud storage integrations
-* Data profiling
-* Data versioning metadata
-* Additional file formats
-
-These additions can be implemented without coupling individual ML projects to the underlying data infrastructure.
-
----
-
-## ML-008 — Data Management Layer
-
-### Objective
-
-Create a reusable data-management layer that centralizes dataset acquisition, loading, validation, and splitting across ML projects.
-
-### Implemented
-
-* `DataSource` abstraction for dataset acquisition.
-* Kaggle data-source integration.
-* CSV data loading through `DataLoader`.
-* Dataset validation through `DataValidator`.
-* Train/validation/test splitting through `DataSplitter`.
-* Centralized random seed integration through `ml_platform.config.settings`.
-* Unit tests for data loading, validation, and splitting.
-* Package-level exports through `ml_platform.data`.
-
-### Architecture
-
-```text
-Data Source
-    ↓
-DataLoader
-    ↓
-DataValidator
-    ↓
-DataSplitter
-    ↓
-ML Training Pipeline
-```
-
-Kaggle is treated as a **data-acquisition mechanism**, while DVC remains responsible for **dataset versioning**.
-
-### Status
-
-**In Progress — Integration Pending**
-
-The data-management components and unit tests have been implemented. The next step is to integrate the layer into an existing example ML project and replace its current dataset-management logic with the shared `ml_platform.data` components.
-
-Model Pipelines
-
-Model-specific logic is located under:
-
-src/pipelines/
-
-Each pipeline is responsible for implementing the workflow specific to a particular ML problem while relying on reusable components from ml_platform.
-
-F1 Pipeline
-
-The F1 pipeline predicts whether a Formula 1 driver will win a race.
-```
-Kaggle Dataset
-      │
-      ▼
-get_data.py
-      │
-      ▼
-Raw Data
-      │
-      ▼
-prepare_data.py
-      │
-      ▼
-Prepared Data
-      │
-      ▼
-feature_engineering.py
-      │
-      ├── train.csv
-      ├── valid.csv
-      └── test.csv
-      │
-      ▼
-train_model.py
-      │
-      ▼
-model.pkl
-      │
-      ▼
-evaluate_model.py
-      │
-      ▼
-metrics.json
-```
-F1 Artifacts
-```
-artifacts/f1/
-├── data/
-│   ├── raw/
-│   ├── prepared/
-│   └── featured/
-├── models/
-│   └── model.pkl
-└── metrics/
-    └── metrics.json
-```
-The F1 pipeline uses historical data and feature engineering to generate race-level features while avoiding post-race information leakage.
-
-California Housing Pipeline
-
-The California Housing pipeline demonstrates a regression workflow.
-```
-Kaggle Dataset
-      │
-      ▼
-get_data.py
-      │
-      ▼
-Raw Data
-      │
-      ▼
-prepare_data.py
-      │
-      ▼
-DataLoader
-      │
-      ▼
-DataValidator
-      │
-      ▼
-DataSplitter
-      │
-      ├── Train
-      ├── Validation
-      └── Test
-      │
-      ▼
-train_model.py
-      │
-      ▼
-model.pkl
-      │
-      ▼
-evaluate_model.py
-      │
-      ▼
-metrics.json
-```
-California Housing Artifacts
-artifacts/ca_house_prediction/
-├── data/
-│   ├── raw/
-│   │   └── housing.csv
-│   └── prepared/
-│       ├── X_train.csv
-│       ├── X_validation.csv
-│       ├── X_test.csv
-│       ├── y_train.csv
-│       ├── y_validation.csv
-│       └── y_test.csv
-├── models/
-│   └── model.pkl
-└── metrics/
-    └── metrics.json
-DVC Pipelines
-
-DVC is used to make the ML workflows reproducible and to track generated datasets, models, and metrics.
-
-Each model pipeline has its own dvc.yaml.
-```
-src/pipelines/
-├── f1/
-│   └── dvc.yaml
-│
-└── ca_house_prediction/
-    └── dvc.yaml
-````
-A typical pipeline follows:
-```
-Data Ingestion
-      ↓
-Data Preparation
-      ↓
-Feature Engineering
-      ↓
-Training
-      ↓
-Evaluation
-```
-DVC tracks the dependencies and outputs between each stage.
-
-For example:
-
-get_data
-    ↓
-raw data
-    ↓
-prepare
-    ↓
-prepared data
-    ↓
-feature engineering
-    ↓
-featured data
-    ↓
-train
-    ↓
-model
-    ↓
-evaluate
-    ↓
-metrics
-Running a DVC Pipeline
-
-Navigate to the desired pipeline:
-
 cd src/pipelines/f1
-
-Then run:
-
 uv run dvc repro
+```
 
-For California Housing:
+or:
 
+```bash
 cd src/pipelines/ca_house_prediction
 uv run dvc repro
+```
 
-To check whether a pipeline is up to date:
+See the pipeline-specific documentation for more details.
 
-uv run dvc status
-Development
+## Development
 
-The project uses uv for dependency and environment management.
+The project uses `uv` for environment and dependency management.
 
-Install/synchronize the project environment with:
-
+```bash
 uv sync
-
-Run Python commands through the managed environment:
-
-uv run python <script>
-Testing
-
-The project uses pytest.
+```
 
 Run the complete test suite:
 
+```bash
 uv run pytest
+```
 
-The data management layer includes tests for:
+Run code-quality checks:
 
-DataLoader
-DataSplitter
-DataValidator
-Code Quality
-
-The project uses several tools to maintain code quality.
-
-Ruff
+```bash
 uv run ruff check .
-Black
-
-Check formatting:
-
 uv run black --check .
-
-Apply formatting:
-
-uv run black .
-MyPy
 uv run mypy src/
-Continuous Integration
+```
 
-GitHub Actions is used to validate changes before they are merged.
+More information is available in the [Development Documentation](docs/development.md).
 
-The CI pipeline checks:
+## Documentation
 
-Install dependencies
-       ↓
-Ruff
-       ↓
-Black
-       ↓
-MyPy
-       ↓
-Pytest
-
-This helps prevent broken code from being merged into the main development branch.
+| Document                                                          | Description                                 |
+| ----------------------------------------------------------------- | ------------------------------------------- |
+| [Platform](src/ml_platform/README.md)                             | Platform architecture and shared components |
+| [Data Management](src/ml_platform/data/README.md)                 | ML-008 data-management layer                |
+| [Training Framework](src/ml_platform/training/README.md)          | ML-009 training framework                   |
+| [F1 Pipeline](src/pipelines/f1/README.md)                         | F1 model documentation                      |
+| [California Housing](src/pipelines/ca_house_prediction/README.md) | California Housing model documentation      |
+| [Architecture](docs/architecture.md)                              | Overall system architecture                 |
+| [Development](docs/development.md)                                | Development workflow and tooling            |
+| [Roadmap](docs/roadmap.md)                                        | Platform roadmap                            |

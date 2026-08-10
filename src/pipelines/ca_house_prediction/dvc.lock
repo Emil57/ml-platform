@@ -49,8 +49,8 @@ stages:
       size: 54983
     - path: train_model.py
       hash: md5
-      md5: 77eaec969824e5174ee2210abd02e6b4
-      size: 954
+      md5: 1aff210d5764a4d8bcf15e8b2f615011
+      size: 1001
     outs:
     - path: ../../../artifacts/ca_house_prediction/models/model.pkl
       hash: md5
