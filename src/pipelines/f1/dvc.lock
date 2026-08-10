@@ -161,8 +161,8 @@ stages:
       size: 2508
     - path: evaluate_model.py
       hash: md5
-      md5: 48db725e749bedd6e83d6ef24425b228
-      size: 1998
+      md5: f0d7682061c3ccce0c750d64feb2857a
+      size: 1250
     outs:
     - path: ../../../artifacts/f1/metrics/metrics.json
       hash: md5

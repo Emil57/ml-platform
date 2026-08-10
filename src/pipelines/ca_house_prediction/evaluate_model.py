@@ -1,62 +1,46 @@
 import json
-from pathlib import Path
 
 import joblib
+import pandas as pd
 from sklearn.metrics import mean_squared_error, r2_score
 
-from ml_platform.data import DataLoader
-
-ARTIFACTS_DIR = (
-    Path(__file__).resolve().parents[3] / "artifacts" / "ca_house_prediction"
+from ml_platform.evaluation import Evaluator
+from pipelines.ca_house_prediction import (
+    DATA_DIR,
+    METRICS_DIR,
+    MODELS_DIR,
 )
-
-DATA_DIR = ARTIFACTS_DIR / "data"
-MODEL_DIR = ARTIFACTS_DIR / "models"
-METRICS_DIR = ARTIFACTS_DIR / "metrics"
 
 
 def main() -> None:
     """Evaluate the California Housing model."""
 
-    # Load test data
-    loader = DataLoader()
-
-    test_data = loader.load_csv(DATA_DIR / "test.csv")
+    test_data = pd.read_csv(DATA_DIR / "test.csv")
 
     X_test = test_data[["MedInc"]]
     y_test = test_data["MedHouseVal"]
 
-    # Load trained model
-    model = joblib.load(MODEL_DIR / "model.pkl")
+    model = joblib.load(MODELS_DIR / "model.pkl")
 
-    # Generate predictions
-    y_pred = model.predict(X_test)
+    evaluator = Evaluator(model)
 
-    # Calculate metrics
-    mse = mean_squared_error(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
+    result = evaluator.evaluate(
+        X_test,
+        y_test,
+        metrics={
+            "mean_squared_error": mean_squared_error,
+            "r2_score": r2_score,
+        },
+    )
 
-    print("Coefficient:", model.coef_)
-    print("Intercept:", model.intercept_)
-    print("Mean Squared Error:", mse)
-    print("R² Score:", r2)
-
-    # Save metrics
     METRICS_DIR.mkdir(parents=True, exist_ok=True)
 
-    metrics = {
-        "Coefficient": model.coef_.tolist(),
-        "Intercept": (
-            model.intercept_.tolist()
-            if hasattr(model.intercept_, "tolist")
-            else model.intercept_
-        ),
-        "Mean Squared Error": mse,
-        "R2 Score": r2,
-    }
+    metrics_path = METRICS_DIR / "metrics.json"
 
-    with open(METRICS_DIR / "metrics.json", "w") as file:
-        json.dump(metrics, file, indent=4)
+    with metrics_path.open("w") as file:
+        json.dump(result, file, indent=4)
+
+    print(f"Saved metrics to {metrics_path}")
 
 
 if __name__ == "__main__":

@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 
 import joblib
-import pandas as pd
 from sklearn.metrics import (
     accuracy_score,
     brier_score_loss,
@@ -11,62 +10,33 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
+from ml_platform.evaluation import Evaluator
 from pipelines.f1 import FEATURE_DATA_DIR, METRICS_DIR, MODELS_DIR
 
 
-def load_test_data() -> pd.DataFrame:
-    """Load the featured test dataset."""
-
+def main() -> None:
+    model_path = Path(MODELS_DIR) / "model.pkl"
     test_path = Path(FEATURE_DATA_DIR) / "test.csv"
 
-    if not test_path.exists():
-        raise FileNotFoundError(f"Test dataset not found: {test_path}")
-
-    return pd.read_csv(test_path)
-
-
-def evaluate_model(
-    model,
-    test: pd.DataFrame,
-) -> dict[str, float]:
-    """Evaluate the trained F1 model."""
-
-    target_column = "won"
-
-    X_test = test.drop(columns=[target_column])
-    y_test = test[target_column]
-
-    # Predict probabilities and classes.
-    y_proba = model.predict_proba(X_test)[:, 1]
-    y_pred = model.predict(X_test)
-
-    metrics = {
-        "accuracy": accuracy_score(y_test, y_pred),
-        "f1_score": f1_score(y_test, y_pred),
-        "log_loss": log_loss(y_test, y_proba),
-        "brier_score": brier_score_loss(y_test, y_proba),
-        "roc_auc": roc_auc_score(y_test, y_proba),
-    }
-
-    return metrics
-
-
-def main() -> None:
-    """Load the trained model, evaluate it, and save metrics."""
-
-    model_path = Path(MODELS_DIR) / "model.pkl"
-
-    if not model_path.exists():
-        raise FileNotFoundError(f"Model not found: {model_path}")
-
     model = joblib.load(model_path)
+    test = __import__("pandas").read_csv(test_path)
 
-    test = load_test_data()
+    X_test = test.drop(columns=["won"])
+    y_test = test["won"]
 
-    metrics = evaluate_model(model, test)
+    evaluator = Evaluator(model)
 
-    for name, value in metrics.items():
-        print(f"{name}: {value}")
+    metrics = evaluator.evaluate(
+        X_test,
+        y_test,
+        metrics={
+            "accuracy": accuracy_score,
+            "f1_score": f1_score,
+            "log_loss": log_loss,
+            "brier_score": brier_score_loss,
+            "roc_auc": roc_auc_score,
+        },
+    )
 
     metrics_dir = Path(METRICS_DIR)
     metrics_dir.mkdir(parents=True, exist_ok=True)
