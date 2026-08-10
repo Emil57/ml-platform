@@ -20,14 +20,10 @@ def load_training_data() -> tuple[pd.DataFrame, pd.DataFrame]:
     valid_path = feature_data_dir / "valid.csv"
 
     if not train_path.exists():
-        raise FileNotFoundError(
-            f"Training dataset not found: {train_path}"
-        )
+        raise FileNotFoundError(f"Training dataset not found: {train_path}")
 
     if not valid_path.exists():
-        raise FileNotFoundError(
-            f"Validation dataset not found: {valid_path}"
-        )
+        raise FileNotFoundError(f"Validation dataset not found: {valid_path}")
 
     train = pd.read_csv(train_path)
     valid = pd.read_csv(valid_path)

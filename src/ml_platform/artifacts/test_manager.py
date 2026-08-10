@@ -52,11 +52,7 @@ def test_save_model_creates_model_directory(
 
     path = manager.save_model(model)
 
-    expected_directory = (
-        tmp_path
-        / "test_project"
-        / "models"
-    )
+    expected_directory = tmp_path / "test_project" / "models"
 
     assert expected_directory.exists()
     assert expected_directory.is_dir()

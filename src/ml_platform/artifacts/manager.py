@@ -1,12 +1,12 @@
+import json
 from pathlib import Path
 
 import joblib
-import json
 
+from ml_platform.artifacts.metadata import ArtifactMetadata
 from ml_platform.config import settings
 from ml_platform.exceptions import ArtifactError
-from ml_platform.artifacts.metadata import ArtifactMetadata
-
+from typing import Any
 
 class ArtifactManager:
     """Manage machine learning artifacts for a project."""
@@ -35,35 +35,29 @@ class ArtifactManager:
             return path
 
         except Exception as exc:
-            raise ArtifactError(
-                f"Failed to save model artifact: {filename}"
-            ) from exc
+            raise ArtifactError(f"Failed to save model artifact: {filename}") from exc
 
     def load_model(
         self,
         filename: str = "model.pkl",
-    ) -> object:
+    ) -> Any:
         """Load a trained model from the project's artifact directory."""
 
         path = self.models_dir / filename
 
         if not path.exists():
-            raise ArtifactError(
-                f"Model artifact not found: {path}"
-            )
+            raise ArtifactError(f"Model artifact not found: {path}")
 
         try:
             return joblib.load(path)
 
         except Exception as exc:
-            raise ArtifactError(
-                f"Failed to load model artifact: {path}"
-            ) from exc
+            raise ArtifactError(f"Failed to load model artifact: {path}") from exc
 
     def save_metadata(
-    self,
-    metadata: ArtifactMetadata,
-    filename: str = "model.json",
+        self,
+        metadata: ArtifactMetadata,
+        filename: str = "model.json",
     ) -> Path:
         """Save artifact metadata."""
 
@@ -86,7 +80,6 @@ class ArtifactManager:
                 f"Failed to save artifact metadata: {filename}"
             ) from exc
 
-
     def load_metadata(
         self,
         filename: str = "model.json",
@@ -96,9 +89,7 @@ class ArtifactManager:
         path = self.metadata_dir / filename
 
         if not path.exists():
-            raise ArtifactError(
-                f"Artifact metadata not found: {path}"
-            )
+            raise ArtifactError(f"Artifact metadata not found: {path}")
 
         try:
             with path.open("r", encoding="utf-8") as file:
@@ -107,6 +98,4 @@ class ArtifactManager:
             return ArtifactMetadata(**data)
 
         except Exception as exc:
-            raise ArtifactError(
-                f"Failed to load artifact metadata: {path}"
-            ) from exc
+            raise ArtifactError(f"Failed to load artifact metadata: {path}") from exc
