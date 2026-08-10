@@ -56,3 +56,11 @@ class PredictionError(MLPlatformError):
 
 class EvaluationError(Exception):
     """Raised when model evaluation fails."""
+
+# ============================================================================
+# Artifact Exceptions
+# ============================================================================
+
+
+class ArtifactError(Exception):
+    """Raised when an artifact operation fails."""
