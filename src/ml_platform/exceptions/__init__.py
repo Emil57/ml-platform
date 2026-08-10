@@ -47,3 +47,12 @@ class TrainingError(MLPlatformError):
 
 class PredictionError(MLPlatformError):
     """Raised when model prediction fails."""
+
+
+# ============================================================================
+# Evaluation Exceptions
+# ============================================================================
+
+
+class EvaluationError(Exception):
+    """Raised when model evaluation fails."""

@@ -65,10 +65,10 @@ stages:
       size: 895
     - path: evaluate_model.py
       hash: md5
-      md5: 30673b5e0e061872e880efc459c07981
-      size: 1560
+      md5: d1cdd124d8f2c9ff973643a1fa2dc1f2
+      size: 1031
     outs:
     - path: ../../../artifacts/ca_house_prediction/metrics/metrics.json
       hash: md5
-      md5: a400bd2c26c0b1d31add0d0d902213e9
-      size: 181
+      md5: ce283d9fcd97b79173189fddfb8813d1
+      size: 87
