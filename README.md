@@ -1,34 +1,63 @@
-# machine-learning
-Playground for Machine Learning and MLOps
+# Machine Learning Platform
 
+A production-oriented Machine Learning Platform that evolves from individual ML experiments into a reusable, testable, and reproducible ML system.
 
-# Target Architecture
+The project currently contains reusable ML infrastructure, model-specific pipelines, automated testing, code quality checks, and DVC-based pipeline orchestration.
 
+# Project Architecture
+
+The repository separates reusable ML platform components from model-specific pipelines.
 ```
 machine-learning/
-├── .github/
-├── .dvc/
-├── docs/
-├── platform/
-│   ├── api/
-│   ├── orchestrator/
-│   ├── registry/
-│   ├── deployment/
-│   └── monitoring/
-├── src/
-│   ├── common/
-│   │   ├── logging/
-│   │   ├── metrics/
-│   │   ├── preprocessing/
-│   │   ├── validation/
-│   │   ├── exceptions/
-│   │   └── utils/
+│
+├── artifacts/
+│   ├── f1/
+│   │   ├── data/
+│   │   │   ├── raw/
+│   │   │   ├── prepared/
+│   │   │   └── featured/
+│   │   ├── models/
+│   │   └── metrics/
 │   │
-│   ├── model1/
-│   └── model2/
+│   └── ca_house_prediction/
+│       ├── data/
+│       │   ├── raw/
+│       │   └── prepared/
+│       ├── models/
+│       └── metrics/
+│
+├── src/
+│   ├── ml_platform/
+│   │   ├── config/
+│   │   ├── data/
+│   │   │   ├── loader.py
+│   │   │   ├── splitter.py
+│   │   │   ├── validator.py
+│   │   │   └── source/
+│   │   │       ├── base.py
+│   │   │       └── kaggle.py
+│   │   └── ...
+│   │
+│   └── pipelines/
+│       ├── f1/
+│       │   ├── dvc.yaml
+│       │   ├── get_data.py
+│       │   ├── prepare_data.py
+│       │   ├── feature_engineering.py
+│       │   ├── train_model.py
+│       │   └── evaluate_model.py
+│       │
+│       └── ca_house_prediction/
+│           ├── dvc.yaml
+│           ├── get_data.py
+│           ├── prepare_data.py
+│           ├── train_model.py
+│           └── evaluate_model.py
 │
 ├── tests/
-└── pyproject.toml
+├── pyproject.toml
+├── uv.lock
+└── README.md
 ```
 ## Platform Architecture
 
@@ -46,7 +75,6 @@ Current platform modules include:
 - Utilities
 
 Additional platform capabilities will be introduced incrementally throughout the project roadmap.
-
 
 ## Configuration
 
@@ -458,3 +486,242 @@ Kaggle is treated as a **data-acquisition mechanism**, while DVC remains respons
 
 The data-management components and unit tests have been implemented. The next step is to integrate the layer into an existing example ML project and replace its current dataset-management logic with the shared `ml_platform.data` components.
 
+Model Pipelines
+
+Model-specific logic is located under:
+
+src/pipelines/
+
+Each pipeline is responsible for implementing the workflow specific to a particular ML problem while relying on reusable components from ml_platform.
+
+F1 Pipeline
+
+The F1 pipeline predicts whether a Formula 1 driver will win a race.
+```
+Kaggle Dataset
+      │
+      ▼
+get_data.py
+      │
+      ▼
+Raw Data
+      │
+      ▼
+prepare_data.py
+      │
+      ▼
+Prepared Data
+      │
+      ▼
+feature_engineering.py
+      │
+      ├── train.csv
+      ├── valid.csv
+      └── test.csv
+      │
+      ▼
+train_model.py
+      │
+      ▼
+model.pkl
+      │
+      ▼
+evaluate_model.py
+      │
+      ▼
+metrics.json
+```
+F1 Artifacts
+```
+artifacts/f1/
+├── data/
+│   ├── raw/
+│   ├── prepared/
+│   └── featured/
+├── models/
+│   └── model.pkl
+└── metrics/
+    └── metrics.json
+```
+The F1 pipeline uses historical data and feature engineering to generate race-level features while avoiding post-race information leakage.
+
+California Housing Pipeline
+
+The California Housing pipeline demonstrates a regression workflow.
+```
+Kaggle Dataset
+      │
+      ▼
+get_data.py
+      │
+      ▼
+Raw Data
+      │
+      ▼
+prepare_data.py
+      │
+      ▼
+DataLoader
+      │
+      ▼
+DataValidator
+      │
+      ▼
+DataSplitter
+      │
+      ├── Train
+      ├── Validation
+      └── Test
+      │
+      ▼
+train_model.py
+      │
+      ▼
+model.pkl
+      │
+      ▼
+evaluate_model.py
+      │
+      ▼
+metrics.json
+```
+California Housing Artifacts
+artifacts/ca_house_prediction/
+├── data/
+│   ├── raw/
+│   │   └── housing.csv
+│   └── prepared/
+│       ├── X_train.csv
+│       ├── X_validation.csv
+│       ├── X_test.csv
+│       ├── y_train.csv
+│       ├── y_validation.csv
+│       └── y_test.csv
+├── models/
+│   └── model.pkl
+└── metrics/
+    └── metrics.json
+DVC Pipelines
+
+DVC is used to make the ML workflows reproducible and to track generated datasets, models, and metrics.
+
+Each model pipeline has its own dvc.yaml.
+```
+src/pipelines/
+├── f1/
+│   └── dvc.yaml
+│
+└── ca_house_prediction/
+    └── dvc.yaml
+````
+A typical pipeline follows:
+```
+Data Ingestion
+      ↓
+Data Preparation
+      ↓
+Feature Engineering
+      ↓
+Training
+      ↓
+Evaluation
+```
+DVC tracks the dependencies and outputs between each stage.
+
+For example:
+
+get_data
+    ↓
+raw data
+    ↓
+prepare
+    ↓
+prepared data
+    ↓
+feature engineering
+    ↓
+featured data
+    ↓
+train
+    ↓
+model
+    ↓
+evaluate
+    ↓
+metrics
+Running a DVC Pipeline
+
+Navigate to the desired pipeline:
+
+cd src/pipelines/f1
+
+Then run:
+
+uv run dvc repro
+
+For California Housing:
+
+cd src/pipelines/ca_house_prediction
+uv run dvc repro
+
+To check whether a pipeline is up to date:
+
+uv run dvc status
+Development
+
+The project uses uv for dependency and environment management.
+
+Install/synchronize the project environment with:
+
+uv sync
+
+Run Python commands through the managed environment:
+
+uv run python <script>
+Testing
+
+The project uses pytest.
+
+Run the complete test suite:
+
+uv run pytest
+
+The data management layer includes tests for:
+
+DataLoader
+DataSplitter
+DataValidator
+Code Quality
+
+The project uses several tools to maintain code quality.
+
+Ruff
+uv run ruff check .
+Black
+
+Check formatting:
+
+uv run black --check .
+
+Apply formatting:
+
+uv run black .
+MyPy
+uv run mypy src/
+Continuous Integration
+
+GitHub Actions is used to validate changes before they are merged.
+
+The CI pipeline checks:
+
+Install dependencies
+       ↓
+Ruff
+       ↓
+Black
+       ↓
+MyPy
+       ↓
+Pytest
+
+This helps prevent broken code from being merged into the main development branch.
