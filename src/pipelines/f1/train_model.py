@@ -5,9 +5,10 @@ from sklearn.calibration import CalibratedClassifierCV
 from sklearn.frozen import FrozenEstimator
 from sklearn.linear_model import SGDClassifier
 
+from ml_platform.artifacts import ArtifactManager
 from ml_platform.config import settings
-from ml_platform.training.trainer import Trainer
-from pipelines.f1 import FEATURE_DATA_DIR, MODELS_DIR
+from ml_platform.training import Trainer
+from pipelines.f1 import FEATURE_DATA_DIR
 
 
 def load_training_data() -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -51,46 +52,46 @@ def train_model(
         random_state=settings.random_seed,
     )
 
-    # Use the shared training framework for model training.
+    # Train the base classifier using the shared training framework.
     classifier_trainer = Trainer(classifier)
 
     classifier_trainer.train(
-        X_train=X_train,
-        y_train=y_train,
+        X_train,
+        y_train,
     )
 
-    # Calibration is F1-specific logic, so it remains
-    # inside the F1 pipeline rather than inside Trainer.
+    # Calibration is F1-specific logic and therefore remains
+    # inside the F1 pipeline.
     calibrated = CalibratedClassifierCV(
         estimator=FrozenEstimator(classifier),
         method="sigmoid",
     )
 
-    calibrated_trainer = Trainer(calibrated)
+    calibration_trainer = Trainer(calibrated)
 
-    calibrated_trainer.train(
-        X_train=X_valid,
-        y_train=y_valid,
+    calibration_trainer.train(
+        X_valid,
+        y_valid,
     )
 
     return calibrated
 
 
 def main() -> None:
-    """Train the F1 model and save it."""
+    """Train the F1 model and save the final artifact."""
 
     train, valid = load_training_data()
 
-    model = train_model(train, valid)
+    model = train_model(
+        train,
+        valid,
+    )
 
-    models_dir = Path(MODELS_DIR)
-    model_path = models_dir / "model.pkl"
+    artifact_manager = ArtifactManager("f1")
 
-    # Use the shared Trainer for model persistence as well.
-    trainer = Trainer(model)
-    trainer.save(model_path)
+    model_path = artifact_manager.save_model(model)
 
-    print(f"Saved model to {model_path}")
+    print(f"Model saved to {model_path}")
 
 
 if __name__ == "__main__":

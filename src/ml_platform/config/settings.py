@@ -5,7 +5,11 @@ This module defines the application's configuration using
 Pydantic Settings.
 """
 
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
 class Settings(BaseSettings):
@@ -25,3 +29,4 @@ class Settings(BaseSettings):
         env_file=".env",
         extra="ignore",
     )
+    artifacts_dir: Path = PROJECT_ROOT / "artifacts"

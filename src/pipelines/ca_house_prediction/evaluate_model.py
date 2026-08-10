@@ -1,14 +1,13 @@
 import json
 
-import joblib
 import pandas as pd
 from sklearn.metrics import mean_squared_error, r2_score
 
+from ml_platform.artifacts import ArtifactManager
 from ml_platform.evaluation import Evaluator
 from pipelines.ca_house_prediction import (
     DATA_DIR,
     METRICS_DIR,
-    MODELS_DIR,
 )
 
 
@@ -20,8 +19,9 @@ def main() -> None:
     X_test = test_data[["MedInc"]]
     y_test = test_data["MedHouseVal"]
 
-    model = joblib.load(MODELS_DIR / "model.pkl")
+    artifact_manager = ArtifactManager("ca_house_prediction")
 
+    model = artifact_manager.load_model()
     evaluator = Evaluator(model)
 
     result = evaluator.evaluate(
