@@ -1,9 +1,9 @@
 from pathlib import Path
 
-import joblib
 from sklearn.linear_model import LinearRegression
 
 from ml_platform.data import DataLoader
+from ml_platform.training import Trainer
 
 DATA_DIR = (
     Path(__file__).resolve().parents[3] / "artifacts" / "ca_house_prediction" / "data"
@@ -28,13 +28,16 @@ def main() -> None:
 
     model = LinearRegression()
 
-    model.fit(X_train, y_train)
+    trainer = Trainer(model)
 
-    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    trainer.train(
+        X_train=X_train,
+        y_train=y_train,
+    )
 
     model_path = MODEL_DIR / "model.pkl"
 
-    joblib.dump(model, model_path)
+    trainer.save(model_path)
 
     print(f"Model saved to {model_path}")
 
