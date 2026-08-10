@@ -1,12 +1,13 @@
 import json
 from pathlib import Path
+from typing import Any
 
 import joblib
 
 from ml_platform.artifacts.metadata import ArtifactMetadata
 from ml_platform.config import settings
 from ml_platform.exceptions import ArtifactError
-from typing import Any
+
 
 class ArtifactManager:
     """Manage machine learning artifacts for a project."""
