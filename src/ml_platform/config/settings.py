@@ -24,9 +24,14 @@ class Settings(BaseSettings):
 
     log_level: str = "INFO"
 
+    artifacts_dir: Path = PROJECT_ROOT / "artifacts"
+
+    mlflow_tracking_uri: str = "mlruns"
+    mlflow_registry_uri: str = "mlruns"
+    mlflow_experiment_name: str = "default"
+
     model_config = SettingsConfigDict(
         env_prefix="ML_",
         env_file=".env",
         extra="ignore",
     )
-    artifacts_dir: Path = PROJECT_ROOT / "artifacts"
