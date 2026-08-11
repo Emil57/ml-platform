@@ -225,3 +225,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+# MLflow local tracking database
+mlflow.db
+mlflow.db-journal
