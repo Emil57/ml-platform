@@ -54,7 +54,7 @@ class PredictionError(MLPlatformError):
 # ============================================================================
 
 
-class EvaluationError(Exception):
+class EvaluationError(MLPlatformError):
     """Raised when model evaluation fails."""
 
 
@@ -63,5 +63,22 @@ class EvaluationError(Exception):
 # ============================================================================
 
 
-class ArtifactError(Exception):
+class ArtifactError(MLPlatformError):
     """Raised when an artifact operation fails."""
+
+
+# ============================================================================
+# Tracking Exceptions
+# ============================================================================
+
+
+class TrackingError(MLPlatformError):
+    """Base class for experiment tracking errors."""
+
+
+class ExperimentError(TrackingError):
+    """Raised when an experiment operation fails."""
+
+
+class RunError(TrackingError):
+    """Raised when an MLflow run operation fails."""
