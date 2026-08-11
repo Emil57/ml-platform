@@ -85,3 +85,68 @@ def test_tracker_logs_artifact(
         )
 
         assert any(item.path == "metrics.json" for item in artifacts)
+
+
+def test_run_finishes_successfully(
+    tracker: ExperimentTracker,
+) -> None:
+    with tracker.run(run_name="successful-run") as run:
+        run_id = run.info.run_id
+
+    logged_run = mlflow.get_run(run_id)
+
+    assert logged_run.info.status == "FINISHED"
+
+
+def test_run_is_marked_failed(
+    tracker: ExperimentTracker,
+) -> None:
+    with pytest.raises(ValueError, match="Training failed"):
+        with tracker.run(run_name="failed-run") as run:
+            run_id = run.info.run_id
+
+            raise ValueError("Training failed")
+
+    logged_run = mlflow.get_run(run_id)
+
+    assert logged_run.info.status == "FAILED"
+
+
+def test_run_name_is_logged(
+    tracker: ExperimentTracker,
+) -> None:
+    with tracker.run(run_name="experiment-run") as run:
+        run_id = run.info.run_id
+
+    logged_run = mlflow.get_run(run_id)
+
+    assert logged_run.info.run_name == "experiment-run"
+
+
+def test_run_tags_are_logged(
+    tracker: ExperimentTracker,
+) -> None:
+    with tracker.run(
+        run_name="tagged-run",
+        tags={
+            "model": "random_forest",
+            "environment": "test",
+        },
+    ) as run:
+        run_id = run.info.run_id
+
+    logged_run = mlflow.get_run(run_id)
+
+    assert logged_run.data.tags["model"] == "random_forest"
+    assert logged_run.data.tags["environment"] == "test"
+
+
+def test_get_active_run_id(
+    tracker: ExperimentTracker,
+) -> None:
+    assert tracker.get_active_run_id() is None
+
+    with tracker.run() as run:
+        assert tracker.get_active_run_id() == run.info.run_id
+
+    assert tracker.get_active_run_id() is None

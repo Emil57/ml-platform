@@ -1,4 +1,5 @@
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -103,3 +104,42 @@ class ExperimentTracker:
 
         except Exception as exc:
             raise RunError(f"Failed to log artifact: {path}") from exc
+
+    @contextmanager
+    def run(
+        self,
+        run_name: str | None = None,
+        tags: Mapping[str, str] | None = None,
+    ) -> Iterator[mlflow.ActiveRun]:
+        """Manage the lifecycle of an MLflow run."""
+
+        experiment_id = self._get_or_create_experiment()
+
+        with mlflow.start_run(
+            experiment_id=experiment_id,
+            run_name=run_name,
+            tags=dict(tags) if tags else None,
+        ) as active_run:
+            yield active_run
+
+    def get_active_run_id(self) -> str | None:
+        """Return the active MLflow run ID, if one exists."""
+
+        run = mlflow.active_run()
+
+        if run is None:
+            return None
+
+        return run.info.run_id
+
+    def set_tags(
+        self,
+        tags: Mapping[str, str],
+    ) -> None:
+        """Set tags for the active MLflow run."""
+
+        try:
+            mlflow.set_tags(dict(tags))
+
+        except Exception as exc:
+            raise RunError("Failed to set MLflow run tags.") from exc
