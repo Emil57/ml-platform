@@ -26,8 +26,8 @@ class Settings(BaseSettings):
 
     artifacts_dir: Path = PROJECT_ROOT / "artifacts"
 
-    mlflow_tracking_uri: str = "mlruns"
-    mlflow_registry_uri: str = "mlruns"
+    mlflow_tracking_uri: str = "sqlite:///mlflow.db"
+    mlflow_registry_uri: str = "sqlite:///mlflow.db"
     mlflow_experiment_name: str = "default"
 
     model_config = SettingsConfigDict(
