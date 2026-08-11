@@ -82,3 +82,12 @@ class ExperimentError(TrackingError):
 
 class RunError(TrackingError):
     """Raised when an MLflow run operation fails."""
+
+
+# ============================================================================
+# Registry Exceptions
+# ============================================================================
+
+
+class RegistryError(MLPlatformError):
+    """Raised when a model registry operation fails."""
