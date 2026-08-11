@@ -88,5 +88,6 @@ class RunError(TrackingError):
 # Registry Exceptions
 # ============================================================================
 
+
 class RegistryError(MLPlatformError):
     """Raised when a model registry operation fails."""

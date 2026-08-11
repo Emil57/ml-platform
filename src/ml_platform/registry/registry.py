@@ -26,14 +26,12 @@ class ModelRegistry:
             )
 
         except Exception as exc:
-            raise RegistryError(
-                f"Failed to register model: {model_name}"
-            ) from exc
-        
+            raise RegistryError(f"Failed to register model: {model_name}") from exc
+
     def get_model(
         self,
         model_name: str,
-        ) -> Any:
+    ) -> Any:
         """Retrieve a registered model by name."""
 
         try:
@@ -59,8 +57,7 @@ class ModelRegistry:
 
         except Exception as exc:
             raise RegistryError(
-                f"Failed to retrieve model version: "
-                f"{model_name} v{version}"
+                f"Failed to retrieve model version: " f"{model_name} v{version}"
             ) from exc
 
     def list_versions(
@@ -70,16 +67,11 @@ class ModelRegistry:
         """List all versions of a registered model."""
 
         try:
-            return list(
-                self.client.search_model_versions(
-                    f"name='{model_name}'"
-                )
-            )
+            return list(self.client.search_model_versions(f"name='{model_name}'"))
 
         except Exception as exc:
-            raise RegistryError(
-                f"Failed to list model versions: {model_name}"
-            ) from exc
+            raise RegistryError(f"Failed to list model versions: {model_name}") from exc
+
     def set_alias(
         self,
         model_name: str,
@@ -97,8 +89,7 @@ class ModelRegistry:
 
         except Exception as exc:
             raise RegistryError(
-                f"Failed to set alias '{alias}' for "
-                f"{model_name} v{version}"
+                f"Failed to set alias '{alias}' for " f"{model_name} v{version}"
             ) from exc
 
     def get_model_by_alias(
@@ -116,6 +107,5 @@ class ModelRegistry:
 
         except Exception as exc:
             raise RegistryError(
-                f"Failed to retrieve model '{model_name}' "
-                f"with alias '{alias}'"
+                f"Failed to retrieve model '{model_name}' " f"with alias '{alias}'"
             ) from exc
