@@ -25,7 +25,7 @@ def test_environment_override(monkeypatch):
 def test_mlflow_default_settings():
     settings = Settings()
 
-    assert settings.mlflow_tracking_uri == "mlruns"
+    assert settings.mlflow_tracking_uri == "sqlite:///mlflow.db"
     assert settings.mlflow_registry_uri == "mlruns"
     assert settings.mlflow_experiment_name == "default"
 
