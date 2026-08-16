@@ -24,6 +24,7 @@ class PredictionService(Protocol):
         """Execute a prediction request."""
         ...
 
+
 class ModelLoader(Protocol):
     def load(self, model_uri: str) -> Predictor:
         """Load a model from the specified URI."""

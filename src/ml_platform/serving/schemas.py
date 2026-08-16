@@ -8,11 +8,13 @@ class PredictionRequest(BaseModel):
     model_version: str | None = Field(default=None, min_length=1)
     inputs: list[dict[str, Any]]
 
+
 class PredictionResponse(BaseModel):
     model_name: str
     model_version: str
     predictions: list[Any]
     request_id: str
+
 
 class ModelReference(BaseModel):
     name: str = Field(min_length=1)
