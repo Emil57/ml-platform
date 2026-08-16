@@ -3,7 +3,7 @@ from typing import Any
 import mlflow
 from mlflow import MlflowClient
 
-from ml_platform.exceptions import RegistryError
+from ml_platform.exceptions import ModelLifecycleError, RegistryError
 
 
 class ModelRegistry:
@@ -78,7 +78,7 @@ class ModelRegistry:
         alias: str,
         version: str,
     ) -> None:
-        """Assign an alias to a model version."""
+        """Assign an alias to a registered model version."""
 
         try:
             self.client.set_registered_model_alias(
@@ -88,8 +88,9 @@ class ModelRegistry:
             )
 
         except Exception as exc:
-            raise RegistryError(
-                f"Failed to set alias '{alias}' for " f"{model_name} v{version}"
+            raise ModelLifecycleError(
+                f"Failed to assign alias '{alias}' "
+                f"to model '{model_name}' version '{version}'."
             ) from exc
 
     def get_model_by_alias(
@@ -97,7 +98,7 @@ class ModelRegistry:
         model_name: str,
         alias: str,
     ) -> Any:
-        """Retrieve a model version by alias."""
+        """Retrieve a registered model version by alias."""
 
         try:
             return self.client.get_model_version_by_alias(
@@ -106,6 +107,6 @@ class ModelRegistry:
             )
 
         except Exception as exc:
-            raise RegistryError(
-                f"Failed to retrieve model '{model_name}' " f"with alias '{alias}'"
+            raise ModelLifecycleError(
+                f"Failed to retrieve model '{model_name}' " f"using alias '{alias}'."
             ) from exc
