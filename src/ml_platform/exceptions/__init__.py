@@ -91,3 +91,7 @@ class RunError(TrackingError):
 
 class RegistryError(MLPlatformError):
     """Raised when a model registry operation fails."""
+
+
+class ModelLifecycleError(RegistryError):
+    """Raised when a model lifecycle operation fails."""
