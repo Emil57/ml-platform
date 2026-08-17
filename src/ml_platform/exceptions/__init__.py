@@ -95,3 +95,24 @@ class RegistryError(MLPlatformError):
 
 class ModelLifecycleError(RegistryError):
     """Raised when a model lifecycle operation fails."""
+
+
+# ============================================================================
+# Serving Exceptions
+# ============================================================================
+
+
+class ServingError(MLPlatformError):
+    """Base exception for serving-related errors."""
+
+
+class ModelNotFoundError(ServingError):
+    """Raised when a requested model cannot be found."""
+
+
+class ModelLoadError(ServingError):
+    """Raised when a model cannot be loaded."""
+
+
+class InvalidPredictionInputError(ServingError):
+    """Raised when prediction input is invalid."""
