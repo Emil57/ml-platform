@@ -146,3 +146,87 @@ def test_prediction_error() -> None:
 
     assert response.status_code == 500
     assert response.json() == {"detail": "Prediction failed."}
+
+
+def test_prediction_missing_model_name() -> None:
+    response = client.post(
+        "/predict",
+        json={
+            "model_version": "1",
+            "inputs": [{"feature": 10}],
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_prediction_empty_model_name() -> None:
+    response = client.post(
+        "/predict",
+        json={
+            "model_name": "",
+            "inputs": [{"feature": 10}],
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_prediction_missing_inputs() -> None:
+    response = client.post(
+        "/predict",
+        json={
+            "model_name": "test-model",
+            "model_version": "1",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_prediction_invalid_inputs() -> None:
+    response = client.post(
+        "/predict",
+        json={
+            "model_name": "test-model",
+            "model_version": "1",
+            "inputs": "invalid",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_prediction_without_model_version() -> None:
+    expected_response = PredictionResponse(
+        model_name="test-model",
+        model_version="unknown",
+        predictions=[42],
+        request_id="test-request-id",
+    )
+
+    override_prediction_service(expected_response)
+
+    response = client.post(
+        "/predict",
+        json={
+            "model_name": "test-model",
+            "inputs": [{"feature": 10}],
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["model_version"] == "unknown"
+
+
+def test_prediction_empty_model_version() -> None:
+    response = client.post(
+        "/predict",
+        json={
+            "model_name": "test-model",
+            "model_version": "",
+            "inputs": [{"feature": 10}],
+        },
+    )
+
+    assert response.status_code == 422

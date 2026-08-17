@@ -3,10 +3,7 @@ from fastapi.responses import JSONResponse
 
 from ml_platform.exceptions import (
     InvalidPredictionInputError,
-    ModelLoadError,
     ModelNotFoundError,
-    PredictionError,
-    ServingError,
 )
 
 
