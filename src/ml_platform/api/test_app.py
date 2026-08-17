@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -11,7 +12,13 @@ from ml_platform.exceptions import (
     ModelNotFoundError,
     PredictionError,
 )
-from ml_platform.serving.schemas import PredictionRequest, PredictionResponse
+from ml_platform.serving.contracts import Predictor
+from ml_platform.serving.schemas import (
+    ModelReference,
+    PredictionRequest,
+    PredictionResponse,
+)
+from ml_platform.serving.service import PredictionService
 
 client = TestClient(app)
 
@@ -33,6 +40,27 @@ class FakePredictionService:
             raise self._response
 
         return self._response
+
+
+class FakePredictor:
+    """Fake predictor used for API integration tests."""
+
+    def predict(self, inputs: list[dict[str, Any]]) -> list[Any]:
+        return [42 for _ in inputs]
+
+
+class FakeModelResolver:
+    """Fake model resolver used for API integration tests."""
+
+    def resolve(self, reference: ModelReference) -> str:
+        return f"models:/{reference.name}/{reference.version}"
+
+
+class FakeModelLoader:
+    """Fake model loader used for API integration tests."""
+
+    def load(self, model_uri: str) -> Predictor:
+        return FakePredictor()
 
 
 def override_prediction_service(
@@ -230,3 +258,38 @@ def test_prediction_empty_model_version() -> None:
     )
 
     assert response.status_code == 422
+
+
+def override_real_prediction_service() -> None:
+    service = PredictionService(
+        resolver=FakeModelResolver(),
+        loader=FakeModelLoader(),
+    )
+
+    app.dependency_overrides[get_prediction_service] = lambda: service
+
+
+def test_prediction_api_integration() -> None:
+    override_real_prediction_service()
+
+    response = client.post(
+        "/predict",
+        json={
+            "model_name": "test-model",
+            "model_version": "1",
+            "inputs": [
+                {"feature": 10},
+                {"feature": 20},
+                {"feature": 30},
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert body["model_name"] == "test-model"
+    assert body["model_version"] == "1"
+    assert body["predictions"] == [42, 42, 42]
+    assert body["request_id"]
