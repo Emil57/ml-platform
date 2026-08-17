@@ -1,7 +1,7 @@
 from mlflow import MlflowClient
 
-from ml_platform.serving.resolver import MLflowModelResolver
 from ml_platform.serving.loader import MLflowModelLoader
+from ml_platform.serving.resolver import MLflowModelResolver
 from ml_platform.serving.service import PredictionService
 
 

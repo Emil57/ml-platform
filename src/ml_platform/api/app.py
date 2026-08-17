@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+
 from ml_platform.api.routes.predictions import router as prediction_router
 
 app = FastAPI(
@@ -8,6 +9,7 @@ app = FastAPI(
 )
 
 app.include_router(prediction_router)
+
 
 @app.get("/health")
 def health() -> dict[str, str]:
