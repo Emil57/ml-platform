@@ -14,8 +14,8 @@ class Predictor(Protocol):
 
 
 class ModelResolver(Protocol):
-    def resolve(self, reference: ModelReference) -> Predictor:
-        """Resolve a model reference into a predictor."""
+    def resolve(self, reference: ModelReference) -> str:
+        """Resolve a model reference to a model URI."""
         ...
 
 
