@@ -2,7 +2,7 @@ from mlflow import MlflowClient
 
 from ml_platform.exceptions import ModelNotFoundError
 from ml_platform.serving.contracts import ModelResolver
-from ml_platform.serving.schemas import ModelReference
+from ml_platform.serving.schemas import ModelReference, ResolvedModel
 
 
 class MLflowModelResolver(ModelResolver):
@@ -11,7 +11,7 @@ class MLflowModelResolver(ModelResolver):
     def __init__(self, client: MlflowClient) -> None:
         self._client = client
 
-    def resolve(self, reference: ModelReference) -> str:
+    def resolve(self, reference: ModelReference) -> ResolvedModel:
         """Resolve a model reference to an MLflow model URI."""
         try:
             if reference.version is not None:
@@ -20,15 +20,25 @@ class MLflowModelResolver(ModelResolver):
                     version=reference.version,
                 )
 
-                return f"models:/{reference.name}/{reference.version}"
+                return ResolvedModel(
+                    name=reference.name,
+                    version=reference.version,
+                    uri=f"models:/{reference.name}/{reference.version}",
+                )
 
             if reference.alias is not None:
-                self._client.get_model_version_by_alias(
+                model = self._client.get_model_version_by_alias(
                     name=reference.name,
                     alias=reference.alias,
                 )
 
-                return f"models:/{reference.name}@{reference.alias}"
+                version = str(model.version)
+                return ResolvedModel(
+                    name=reference.name,
+                    version=version,
+                    alias=reference.alias,
+                    uri=f"models:/{reference.name}/{version}",
+                )
 
         except Exception as exc:
             raise ModelNotFoundError(

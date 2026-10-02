@@ -1,6 +1,6 @@
 # Serving
 
-The `serving` module defines the contracts and core abstractions required to serve trained machine learning models.
+The serving engine connects registered MLflow models to the FastAPI prediction API. One deployment loads and retains one concrete model version.
 
 It provides a framework-independent interface between the prediction API, model resolution, model loading, and model execution.
 
@@ -43,12 +43,10 @@ This separation keeps the serving layer independent from ML frameworks and model
 Defines the input to a prediction operation:
 
 ```text
-model_name
-model_version / alias
 inputs
 ```
 
-A request must identify the model using either a specific version or an alias.
+A request contains a nonempty list of input dictionaries. Model identity comes from deployment settings.
 
 ### `PredictionResponse`
 
@@ -74,7 +72,7 @@ predict(inputs) -> predictions
 The model identification contract:
 
 ```python
-resolve(reference) -> predictor/model target
+resolve(reference) -> ResolvedModel(name, version, alias, uri)
 ```
 
 ### `ModelLoader`
@@ -90,26 +88,26 @@ load(model_uri) -> predictor
 The orchestration contract:
 
 ```python
-predict(request) -> response
+predict(request, request_id=None) -> response
 ```
 
 ## Model Selection
 
-Models can be requested using either:
+Set `SERVING_MODEL_SELECTOR=version` (the default) with:
 
 ```text
 name + version
 ```
 
-for deterministic model selection, or:
+for deterministic model selection. Set `SERVING_MODEL_SELECTOR=alias` with:
 
 ```text
 name + alias
 ```
 
-for lifecycle-based selection such as `production`.
+for lifecycle selection such as `champion`. Alias selection requires a nonempty alias. The inactive selector setting is ignored.
 
-A request cannot specify both a version and an alias.
+The resolver returns concrete version metadata and a version-specific loading URI. The first readiness, metadata, or prediction request loads the model. Successful loads are cached per process; failures can be retried. Loading is synchronized across concurrent requests. Moving an alias does not change an already loaded deployment; restart to pick up the new version.
 
 ## Error Handling
 
@@ -137,10 +135,9 @@ Prediction logs contain:
 - configured model name, version, and optional alias;
 - end-to-end serving latency in milliseconds;
 - success or failure status;
-- failure event type and error information when applicable.
+- failure event type and exception type when applicable.
 
-Serving latency is measured from model resolution through model loading and
-inference. Request inputs and prediction values are not written to logs.
+Prediction latency includes resolution and loading on a cold request, and inference against the cached model on subsequent requests. Readiness and metadata requests can load the model first. Inputs, predictions, raw exception messages, and chained tracebacks are omitted from application logs because model exceptions may contain sensitive inputs.
 
 ## Package Structure
 
@@ -162,6 +159,24 @@ tests/serving/
 
 ## Scope
 
-This module defines **what the serving system must do**, not how models are served in production.
+The serving module owns resolution, model loading, prediction, and operational metadata. The API layer owns HTTP endpoints and status codes.
 
-Concrete implementations such as MLflow model loading, prediction services, HTTP endpoints, caching, deployment, and observability are implemented in subsequent serving stories.
+## Complete Serving Workflow
+
+```text
+MLflow Registry -> lifecycle alias -> concrete version -> model loading
+    -> PredictionService -> FastAPI POST /predict -> prediction response
+```
+
+Configure tracking and registry URIs with `MLFLOW_TRACKING_URI` and `MLFLOW_REGISTRY_URI`. Select the model with `SERVING_MODEL_NAME`, `SERVING_MODEL_SELECTOR`, and either `SERVING_MODEL_VERSION` or `SERVING_MODEL_ALIAS`. Start with `uv run python -m ml_platform.api`; host and port come from platform settings.
+
+| Endpoint | Behavior |
+| --- | --- |
+| `GET /health` | Process liveness; 200 without accessing MLflow. |
+| `GET /ready` | Loads the model; 200 with readiness and metadata, or generic 503. |
+| `GET /model` | Loaded model name, concrete version, and selected alias; generic 503 if unavailable. |
+| `POST /predict` | Predictions, model name/version, and request ID. |
+
+Metadata excludes artifact locations and credentials. Readiness verifies model availability, not whether every possible input succeeds. Malformed prediction bodies return 422; missing aliases or versions return 404; loading and inference failures return 500. Request ID headers are returned for handled failures as well as successful responses.
+
+Run `uv run pytest src/ml_platform/serving/tests/integration -q` for isolated registry-to-API tests. They use temporary SQLite storage and artifact directories, register two distinct versions, assign an alias, and exercise the real resolver, loader, serving engine, and FastAPI TestClient. No external MLflow server, Uvicorn process, or dataset download is needed. Fixtures restore settings, dependency overrides, cached services, and MLflow URIs.

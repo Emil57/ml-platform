@@ -9,6 +9,7 @@ from ml_platform.serving import service as service_module
 from ml_platform.serving.schemas import (
     ModelReference,
     PredictionRequest,
+    ResolvedModel,
 )
 from ml_platform.serving.service import PredictionService
 
@@ -18,7 +19,9 @@ def test_prediction_service() -> None:
     loader = MagicMock()
     predictor = MagicMock()
 
-    resolver.resolve.return_value = "models:/california-housing/3"
+    resolver.resolve.return_value = ResolvedModel(
+        name="test-model", version="1", uri="models:/test-model/1"
+    )
     loader.load.return_value = predictor
     predictor.predict.return_value = [123.4, 456.7]
 
@@ -45,7 +48,7 @@ def test_prediction_service() -> None:
 
     resolver.resolve.assert_called_once_with(expected_reference)
 
-    loader.load.assert_called_once_with("models:/california-housing/3")
+    loader.load.assert_called_once_with("models:/test-model/1")
     predictor.predict.assert_called_once_with(
         request.inputs,
     )
@@ -59,7 +62,9 @@ def test_prediction_logs_success(
     loader = MagicMock()
     predictor = MagicMock()
 
-    resolver.resolve.return_value = "models:/test-model/1"
+    resolver.resolve.return_value = ResolvedModel(
+        name="test-model", version="1", alias="champion", uri="models:/test-model/1"
+    )
     loader.load.return_value = predictor
     predictor.predict.return_value = [42]
 
@@ -99,7 +104,9 @@ def test_prediction_generates_request_id() -> None:
     loader = MagicMock()
     predictor = MagicMock()
 
-    resolver.resolve.return_value = "models:/test-model/1"
+    resolver.resolve.return_value = ResolvedModel(
+        name="test-model", version="1", alias="champion", uri="models:/test-model/1"
+    )
     loader.load.return_value = predictor
     predictor.predict.return_value = [42]
 
@@ -124,7 +131,9 @@ def test_prediction_logs_model_load_failure(
     resolver = MagicMock()
     loader = MagicMock()
 
-    resolver.resolve.return_value = "models:/test-model/1"
+    resolver.resolve.return_value = ResolvedModel(
+        name="test-model", version="1", alias="champion", uri="models:/test-model/1"
+    )
     loader.load.side_effect = ModelLoadError("Unable to load model.")
 
     monkeypatch.setattr(
@@ -161,7 +170,9 @@ def test_prediction_logs_inference_failure(
     loader = MagicMock()
     predictor = MagicMock()
 
-    resolver.resolve.return_value = "models:/test-model/1"
+    resolver.resolve.return_value = ResolvedModel(
+        name="test-model", version="1", alias="champion", uri="models:/test-model/1"
+    )
     loader.load.return_value = predictor
     predictor.predict.side_effect = PredictionError("Inference failed.")
 
@@ -200,7 +211,9 @@ def test_prediction_does_not_log_inputs(
     loader = MagicMock()
     predictor = MagicMock()
 
-    resolver.resolve.return_value = "models:/test-model/1"
+    resolver.resolve.return_value = ResolvedModel(
+        name="test-model", version="1", alias="champion", uri="models:/test-model/1"
+    )
     loader.load.return_value = predictor
     predictor.predict.return_value = [42]
 

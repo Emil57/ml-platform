@@ -18,6 +18,7 @@ from ml_platform.serving.schemas import (
     ModelReference,
     PredictionRequest,
     PredictionResponse,
+    ResolvedModel,
 )
 from ml_platform.serving.service import PredictionService
 
@@ -55,8 +56,13 @@ class FakePredictor:
 class FakeModelResolver:
     """Fake model resolver used for API integration tests."""
 
-    def resolve(self, reference: ModelReference) -> str:
-        return f"models:/{reference.name}/{reference.version}"
+    def resolve(self, reference: ModelReference) -> ResolvedModel:
+        assert reference.version is not None
+        return ResolvedModel(
+            name=reference.name,
+            version=reference.version,
+            uri=f"models:/{reference.name}/{reference.version}",
+        )
 
 
 class FakeModelLoader:
