@@ -230,3 +230,5 @@ __marimo__/
 # MLflow local tracking database
 mlflow.db
 mlflow.db-journal
+
+mlruns/

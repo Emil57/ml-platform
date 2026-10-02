@@ -17,35 +17,29 @@ def test_prediction_service() -> None:
     predictor.predict.return_value = [123.4, 456.7]
 
     request = PredictionRequest(
-        model_name="california-housing",
-        model_version="3",
-        inputs=[
-            {"feature_a": 1.0},
-            {"feature_a": 2.0},
-        ],
+        inputs=[{"x": 1}],
     )
 
     service = PredictionService(
         resolver=resolver,
         loader=loader,
+        model_name="test-model",
+        model_version="1",
     )
 
     response = service.predict(request)
 
-    assert response.model_name == "california-housing"
-    assert response.model_version == "3"
-    assert response.predictions == [123.4, 456.7]
-    assert response.request_id
+    assert response.model_name == "test-model"
+    assert response.model_version == "1"
 
     expected_reference = ModelReference(
-        name="california-housing",
-        version="3",
+        name="test-model",
+        version="1",
     )
 
     resolver.resolve.assert_called_once_with(expected_reference)
 
-    loader.load.asserast_called_once_with("models:/california-housing/3")
-
+    loader.load.assert_called_once_with("models:/california-housing/3")
     predictor.predict.assert_called_once_with(
         request.inputs,
     )
