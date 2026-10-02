@@ -1,5 +1,6 @@
 from collections.abc import Generator
 from typing import Any
+from uuid import UUID
 
 import pytest
 from fastapi.testclient import TestClient
@@ -35,7 +36,9 @@ class FakePredictionService:
     def __init__(self, response: PredictionResponse | Exception) -> None:
         self._response = response
 
-    def predict(self, request: PredictionRequest) -> PredictionResponse:
+    def predict(
+        self, request: PredictionRequest, *, request_id: str | None = None
+    ) -> PredictionResponse:
         if isinstance(self._response, Exception):
             raise self._response
 
@@ -111,13 +114,13 @@ def test_prediction_model_not_found() -> None:
 
     response = client.post(
         "/predict",
-        json={
-            "inputs": [{"feature": 10}],
-        },
+        headers={"X-Request-ID": "failed-request-123"},
+        json={"inputs": [{"feature": 10}]},
     )
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Unable to resolve model 'test-model'."}
+    assert response.headers["X-Request-ID"] == "failed-request-123"
 
 
 def test_prediction_model_load_error() -> None:
@@ -219,3 +222,20 @@ def test_prediction_api_integration() -> None:
     assert body["model_version"] == "1"
     assert body["predictions"] == [42, 42, 42]
     assert body["request_id"]
+
+
+def test_health_check_returns_provided_request_id() -> None:
+    response = client.get(
+        "/health",
+        headers={"X-Request-ID": "request-123"},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["X-Request-ID"] == "request-123"
+
+
+def test_health_check_generates_request_id() -> None:
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    UUID(response.headers["X-Request-ID"])
