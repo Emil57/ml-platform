@@ -27,15 +27,17 @@ class Settings(BaseSettings):
 
     artifacts_dir: Path = PROJECT_ROOT / "artifacts"
 
-    mlflow_tracking_uri: str = "sqlite:///mlflow.db"
-    mlflow_registry_uri: str = "sqlite:///mlflow.db"
-    mlflow_experiment_name: str = "default"
+    mlflow_tracking_uri: str = Field(default="sqlite:///mlflow.db", min_length=1)
+    mlflow_registry_uri: str = Field(default="sqlite:///mlflow.db", min_length=1)
+    mlflow_experiment_name: str = Field(default="default", min_length=1)
 
-    serving_model_name: str = "f1-predictor"
-    serving_model_alias: str = "champion"
-    serving_host: str = "0.0.0.0"
+    serving_model_name: str = Field(default="f1-predictor", min_length=1)
+    serving_model_version: str = Field(default="1", min_length=1)
+    serving_model_alias: str | None = Field(default=None, min_length=1)
+    serving_host: str = Field(default="0.0.0.0", min_length=1)
     serving_port: int = Field(default=8000, ge=1, le=65535)
-
+    serving_environment: str | None = Field(default=None, min_length=1)
+    
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore",

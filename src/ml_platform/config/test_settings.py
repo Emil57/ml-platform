@@ -1,8 +1,9 @@
 import pytest
-
+from pydantic import ValidationError
 from ml_platform.config import settings
 from ml_platform.config.settings import Settings
 
+from ml_platform.config.settings import Settings
 
 def test_default_environment():
     assert settings.environment == "development"
@@ -69,7 +70,7 @@ def test_serving_default_settings():
     settings = Settings()
 
     assert settings.serving_model_name == "f1-predictor"
-    assert settings.serving_model_alias == "champion"
+    assert settings.serving_model_alias == None
     assert settings.serving_host == "0.0.0.0"
     assert settings.serving_port == 8000
 
@@ -124,3 +125,60 @@ def test_serving_port_must_be_valid():
 def test_serving_port_cannot_exceed_maximum():
     with pytest.raises(ValueError):
         Settings(serving_port=65536)
+
+
+def test_serving_settings_have_defaults() -> None:
+    settings = Settings()
+
+    assert settings.mlflow_tracking_uri == "sqlite:///mlflow.db"
+    assert settings.mlflow_registry_uri == "sqlite:///mlflow.db"
+    assert settings.serving_model_name == "f1-predictor"
+    assert settings.serving_model_version == "1"
+    assert settings.serving_model_alias is None
+    assert settings.serving_host == "0.0.0.0"
+    assert settings.serving_port == 8000
+
+
+def test_serving_settings_can_be_overridden_by_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MLFLOW_TRACKING_URI", "sqlite:///test.db")
+    monkeypatch.setenv("MLFLOW_REGISTRY_URI", "sqlite:///registry.db")
+    monkeypatch.setenv("SERVING_MODEL_NAME", "test-model")
+    monkeypatch.setenv("SERVING_MODEL_VERSION", "2")
+    monkeypatch.setenv("SERVING_MODEL_ALIAS", "champion")
+    monkeypatch.setenv("SERVING_HOST", "127.0.0.1")
+    monkeypatch.setenv("SERVING_PORT", "9000")
+    monkeypatch.setenv("SERVING_ENVIRONMENT", "testing")
+
+    settings = Settings()
+
+    assert settings.mlflow_tracking_uri == "sqlite:///test.db"
+    assert settings.mlflow_registry_uri == "sqlite:///registry.db"
+    assert settings.serving_model_name == "test-model"
+    assert settings.serving_model_version == "2"
+    assert settings.serving_model_alias == "champion"
+    assert settings.serving_host == "127.0.0.1"
+    assert settings.serving_port == 9000
+    assert settings.serving_environment == "testing"
+
+
+def test_invalid_serving_port_raises_validation_error() -> None:
+    with pytest.raises(ValidationError):
+        Settings(serving_port=0)
+
+    with pytest.raises(ValidationError):
+        Settings(serving_port=70000)
+
+
+def test_empty_serving_model_name_raises_validation_error() -> None:
+    with pytest.raises(ValidationError):
+        Settings(serving_model_name="")
+
+
+def test_empty_serving_model_version_raises_validation_error() -> None:
+    with pytest.raises(ValidationError):
+        Settings(serving_model_version="")
+
+
+def test_empty_serving_host_raises_validation_error() -> None:
+    with pytest.raises(ValidationError):
+        Settings(serving_host="")

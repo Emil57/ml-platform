@@ -7,8 +7,6 @@ from ml_platform.serving.schemas import (
 
 def test_prediction_request_creation() -> None:
     request = PredictionRequest(
-        model_name="california-housing",
-        model_version="1",
         inputs=[
             {
                 "MedInc": 8.3,
@@ -17,18 +15,8 @@ def test_prediction_request_creation() -> None:
         ],
     )
 
-    assert request.model_name == "california-housing"
-    assert request.model_version == "1"
     assert len(request.inputs) == 1
 
-
-def test_prediction_request_without_version() -> None:
-    request = PredictionRequest(
-        model_name="california-housing",
-        inputs=[],
-    )
-
-    assert request.model_version is None
 
 
 def test_model_reference() -> None:

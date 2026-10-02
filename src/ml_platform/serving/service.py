@@ -15,9 +15,15 @@ class PredictionService:
         self,
         resolver: ModelResolver,
         loader: ModelLoader,
+        model_name: str,
+        model_version: str,
+        model_alias: str | None = None,
     ) -> None:
         self._resolver = resolver
         self._loader = loader
+        self._model_name = model_name
+        self._model_version = model_version
+        self._model_alias = model_alias
 
     def predict(
         self,
@@ -25,8 +31,9 @@ class PredictionService:
     ) -> PredictionResponse:
         """Generate predictions for a prediction request."""
         reference = ModelReference(
-            name=request.model_name,
-            version=request.model_version,
+            name=self._model_name,
+            version=self._model_version,
+            alias=self._model_alias,
         )
 
         model_uri = self._resolver.resolve(reference)
@@ -36,8 +43,8 @@ class PredictionService:
         predictions = predictor.predict(request.inputs)
 
         return PredictionResponse(
-            model_name=request.model_name,
-            model_version=request.model_version or "unknown",
+            model_name=self._model_name,
+            model_version=self._model_version,
             predictions=predictions,
             request_id=str(uuid4()),
         )
