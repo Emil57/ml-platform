@@ -18,7 +18,6 @@ def test_prediction_request_creation() -> None:
     assert len(request.inputs) == 1
 
 
-
 def test_model_reference() -> None:
     reference = ModelReference(
         name="california-housing",
