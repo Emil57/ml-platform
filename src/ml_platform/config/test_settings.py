@@ -184,3 +184,21 @@ def test_empty_serving_model_version_raises_validation_error() -> None:
 def test_empty_serving_host_raises_validation_error() -> None:
     with pytest.raises(ValidationError):
         Settings(serving_host="")
+
+
+def test_alias_selection_requires_alias() -> None:
+    with pytest.raises(ValidationError, match="SERVING_MODEL_ALIAS"):
+        Settings(serving_model_selector="alias", serving_model_alias=None)
+
+
+def test_alias_selector_environment_override(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SERVING_MODEL_SELECTOR", "alias")
+    monkeypatch.setenv("SERVING_MODEL_ALIAS", "champion")
+    configured = Settings()
+    assert configured.serving_model_selector == "alias"
+    assert configured.serving_model_alias == "champion"
+
+
+def test_invalid_model_selector() -> None:
+    with pytest.raises(ValidationError):
+        Settings.model_validate({"serving_model_selector": "latest"})

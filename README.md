@@ -96,8 +96,8 @@ precedence over defaults.
 
 MLflow tracking and registry URIs, serving model selection, server host, and
 server port are configurable. A deployment serves one configured model
-version. `SERVING_MODEL_ALIAS` is available for a future alias-based rollout;
-when a version is configured, the version takes precedence.
+version. `SERVING_MODEL_SELECTOR` explicitly selects `version` (the default)
+or `alias`. Alias deployments resolve and load a concrete version once.
 
 ## Getting Started
 
@@ -127,8 +127,9 @@ Start the prediction API using the serving settings from `.env`:
 uv run python -m ml_platform.api
 ```
 
-The API exposes `GET /health` and `POST /predict`. Refer to the serving and
-API source packages for the request and response contracts.
+The API exposes `GET /health`, `GET /ready`, `GET /model`, and `POST /predict`.
+See the [serving workflow](src/ml_platform/serving/README.md) for configuration,
+model readiness, metadata, request IDs, and isolated integration tests.
 
 ## Pipelines
 

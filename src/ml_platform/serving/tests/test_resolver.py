@@ -19,7 +19,9 @@ def test_resolve_model_version() -> None:
 
     result = resolver.resolve(reference)
 
-    assert result == "models:/california-housing/3"
+    assert result.uri == "models:/california-housing/3"
+    assert result.version == "3"
+    assert result.alias is None
 
     client.get_model_version.assert_called_once_with(
         name="california-housing",
@@ -29,6 +31,7 @@ def test_resolve_model_version() -> None:
 
 def test_resolve_model_alias() -> None:
     client = MagicMock()
+    client.get_model_version_by_alias.return_value.version = "7"
 
     resolver = MLflowModelResolver(client)
 
@@ -39,7 +42,9 @@ def test_resolve_model_alias() -> None:
 
     result = resolver.resolve(reference)
 
-    assert result == "models:/california-housing@production"
+    assert result.uri == "models:/california-housing/7"
+    assert result.version == "7"
+    assert result.alias == "production"
 
     client.get_model_version_by_alias.assert_called_once_with(
         name="california-housing",

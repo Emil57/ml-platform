@@ -11,6 +11,7 @@ from ml_platform.api.handlers import (
     prediction_error_handler,
     serving_error_handler,
 )
+from ml_platform.api.routes.models import router as model_router
 from ml_platform.api.routes.predictions import router as prediction_router
 from ml_platform.exceptions import (
     InvalidPredictionInputError,
@@ -40,6 +41,7 @@ async def add_request_id(
 
 
 app.include_router(prediction_router)
+app.include_router(model_router)
 
 app.add_exception_handler(
     ModelNotFoundError,
