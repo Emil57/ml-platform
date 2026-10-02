@@ -10,7 +10,6 @@ from ml_platform.api.dependencies import get_prediction_service
 from ml_platform.exceptions import (
     InvalidPredictionInputError,
     ModelLoadError,
-    ModelNotFoundError,
     PredictionError,
 )
 from ml_platform.serving.contracts import Predictor
@@ -108,19 +107,14 @@ def test_prediction() -> None:
 
 
 def test_prediction_model_not_found() -> None:
-    override_prediction_service(
-        ModelNotFoundError("Unable to resolve model 'test-model'.")
-    )
-
     response = client.post(
         "/predict",
-        json={
-            "inputs": [{"feature": 10}],
-        },
+        headers={"X-Request-ID": "failed-request-123"},
+        json={"inputs": [{"feature": 10}]},
     )
 
     assert response.status_code == 404
-    assert response.json() == {"detail": "Unable to resolve model 'test-model'."}
+    assert response.headers["X-Request-ID"] == "failed-request-123"
 
 
 def test_prediction_model_load_error() -> None:
@@ -239,13 +233,3 @@ def test_health_check_generates_request_id() -> None:
 
     assert response.status_code == 200
     UUID(response.headers["X-Request-ID"])
-
-def test_prediction_model_not_found() -> None:
-    response = client.post(
-    "/predict",
-    headers={"X-Request-ID": "failed-request-123"},
-    json={"inputs": [{"feature": 10}]},
-    )
-
-    assert response.status_code == 404
-    assert response.headers["X-Request-ID"] == "failed-request-123"
