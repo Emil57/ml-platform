@@ -1,10 +1,10 @@
 import mlflow
 from mlflow import MlflowClient
 
+from ml_platform.config import settings
 from ml_platform.serving.loader import MLflowModelLoader
 from ml_platform.serving.resolver import MLflowModelResolver
 from ml_platform.serving.service import PredictionService
-from ml_platform.config import settings
 
 
 def get_prediction_service() -> PredictionService:

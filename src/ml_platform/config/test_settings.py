@@ -1,9 +1,9 @@
 import pytest
 from pydantic import ValidationError
+
 from ml_platform.config import settings
 from ml_platform.config.settings import Settings
 
-from ml_platform.config.settings import Settings
 
 def test_default_environment():
     assert settings.environment == "development"
@@ -70,7 +70,7 @@ def test_serving_default_settings():
     settings = Settings()
 
     assert settings.serving_model_name == "f1-predictor"
-    assert settings.serving_model_alias == None
+    assert settings.serving_model_alias is None
     assert settings.serving_host == "0.0.0.0"
     assert settings.serving_port == 8000
 
@@ -139,7 +139,9 @@ def test_serving_settings_have_defaults() -> None:
     assert settings.serving_port == 8000
 
 
-def test_serving_settings_can_be_overridden_by_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_serving_settings_can_be_overridden_by_env(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("MLFLOW_TRACKING_URI", "sqlite:///test.db")
     monkeypatch.setenv("MLFLOW_REGISTRY_URI", "sqlite:///registry.db")
     monkeypatch.setenv("SERVING_MODEL_NAME", "test-model")

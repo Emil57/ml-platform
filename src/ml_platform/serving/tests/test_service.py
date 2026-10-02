@@ -1,6 +1,5 @@
 from unittest.mock import MagicMock
 
-from ml_platform.data import loader
 from ml_platform.serving.schemas import (
     ModelReference,
     PredictionRequest,

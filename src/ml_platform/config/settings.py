@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     serving_host: str = Field(default="0.0.0.0", min_length=1)
     serving_port: int = Field(default=8000, ge=1, le=65535)
     serving_environment: str | None = Field(default=None, min_length=1)
-    
+
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore",
