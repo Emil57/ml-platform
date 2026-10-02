@@ -1,140 +1,143 @@
 # Machine Learning Platform
 
-A production-oriented Machine Learning Platform that evolves from individual ML experiments into a reusable, testable, and reproducible ML system.
+A production-oriented machine learning platform for building reproducible training pipelines and serving registered models through an HTTP API.
 
-The project separates reusable ML infrastructure from model-specific pipelines.
+The repository separates reusable platform capabilities from model-specific pipelines. Shared concerns such as configuration, data handling, experiment tracking, model registration, evaluation, artifacts, and serving live in
+`src/ml_platform`; individual projects live in `src/pipelines`.
 
 ## Architecture
 
 ```text
-machine-learning/
-│
-├── artifacts/
-│   ├── f1/
-│   └── ca_house_prediction/
-│
-├── src/
-│   ├── ml_platform/
-│   │   ├── config/
-│   │   ├── data/
-│   │   ├── exceptions/
-│   │   ├── training/
-│   │   └── utils/
-│   │
-│   └── pipelines/
-│       ├── f1/
-│       └── ca_house_prediction/
-│
-├── docs/
-├── pyproject.toml
-├── uv.lock
-└── README.md
+                         +--------------------+
+                         |  Model Pipelines   |
+                         |  F1 / CA Housing   |
+                         +---------+----------+
+                                   |
+              +--------------------+--------------------+
+              |                                         |
+     +--------v---------+                      +--------v---------+
+     | Training Lifecycle|                      | Serving Lifecycle |
+     | data -> train ->  |                      | API -> resolve -> |
+     | evaluate -> track |                      | load -> predict   |
+     +--------+---------+                      +--------+---------+
+              |                                         |
+              +--------------------+--------------------+
+                                   |
+                         +---------v----------+
+                         | Shared Platform    |
+                         | configuration,     |
+                         | artifacts, logging,|
+                         | exceptions, tests  |
+                         +--------------------+
 ```
 
-## Platform
+The platform is intentionally modular. Pipelines own domain data, feature
+engineering, and model choices; platform packages provide reusable contracts
+and infrastructure around them.
 
-The `ml_platform` package contains reusable infrastructure shared across ML projects.
+## Repository Layout
 
-Current components:
+```text
+.
+|-- .dvc/                # DVC configuration
+|-- .github/             # Repository automation
+|-- artifacts/           # Local generated artifacts
+|-- docs/                # Cross-cutting project documentation
+|-- mlruns/              # Local MLflow experiment output
+|-- src/
+|   |-- examples/        # Runnable usage examples
+|   |-- ml_platform/     # Reusable platform capabilities
+|   |   |-- api/         # HTTP application boundary
+|   |   |-- artifacts/
+|   |   |-- config/
+|   |   |-- data/
+|   |   |-- evaluation/
+|   |   |-- exceptions/
+|   |   |-- registry/
+|   |   |-- serving/
+|   |   |-- tracking/
+|   |   |-- training/
+|   |   `-- utils/
+|   `-- pipelines/       # Model-specific, DVC-backed pipelines
+|       |-- ca_house_prediction/
+|       `-- f1/
+|-- .env.example         # Configuration template
+|-- pyproject.toml       # Dependencies and tool configuration
+`-- uv.lock              # Locked dependency graph
+```
 
-* Configuration management
-* Centralized exceptions
-* Centralized logging
-* Data management
-* Training framework
-* Model persistence
-* Testing utilities
+## Platform Capabilities
 
-See the [Platform Documentation](src/ml_platform/README.md).
+The current platform includes configuration, data management, training,
+evaluation, experiment tracking, artifact management, model registration,
+and model serving. The FastAPI application exposes health and prediction
+endpoints; model identity is configured at deployment time rather than sent
+by each client request.
 
-## Data Management
+For package-level design and usage, see:
 
-The shared data-management layer provides:
+| Area | Documentation |
+| --- | --- |
+| Platform overview | [ml_platform](src/ml_platform/README.md) |
+| Data | [data](src/ml_platform/data/README.md) |
+| Training | [training](src/ml_platform/training/README.md) |
+| Evaluation | [evaluation](src/ml_platform/evaluation/README.md) |
+| Tracking | [tracking](src/ml_platform/tracking/README.md) |
+| Artifacts | [artifacts](src/ml_platform/artifacts/README.md) |
+| Serving | [serving](src/ml_platform/serving/README.md) |
+| F1 pipeline | [f1](src/pipelines/f1/README.md) |
+| California Housing pipeline | [ca_house_prediction](src/pipelines/ca_house_prediction/README.md) |
 
-* Data source abstractions
-* Kaggle integration
-* Dataset loading
-* Data validation
-* Train/validation/test splitting
+## Configuration
 
-See the [Data Management Documentation](src/ml_platform/data/README.md).
+Configuration is managed with Pydantic Settings. Copy `.env.example` to
+`.env` and adjust values for your environment. Environment variables take
+precedence over defaults.
 
-## Training Framework
+MLflow tracking and registry URIs, serving model selection, server host, and
+server port are configurable. A deployment serves one configured model
+version. `SERVING_MODEL_ALIAS` is available for a future alias-based rollout;
+when a version is configured, the version takes precedence.
 
-The shared training framework provides:
+## Getting Started
 
-* Standardized model training
-* Centralized logging
-* Training error handling
-* Model persistence
+The project uses [uv](https://docs.astral.sh/uv/) for environment and
+dependency management.
 
-See the [Training Framework Documentation](src/ml_platform/training/README.md).
+```bash
+uv sync
+```
 
-## Example Pipelines
+Run the test suite:
 
-### Formula 1
+```bash
+uv run pytest
+```
 
-A classification pipeline that predicts whether a Formula 1 driver will win a race.
+Run quality checks:
 
-See the [F1 Pipeline Documentation](src/pipelines/f1/README.md).
+```bash
+uv run ruff check .
+uv run mypy src
+```
 
-### California Housing
+Start the prediction API using the serving settings from `.env`:
 
-A regression pipeline that predicts California housing prices.
+```bash
+uv run python -m ml_platform.api
+```
 
-See the [California Housing Documentation](src/pipelines/ca_house_prediction/README.md).
+The API exposes `GET /health` and `POST /predict`. Refer to the serving and
+API source packages for the request and response contracts.
 
-## DVC
+## Pipelines
 
-Each ML pipeline has its own DVC pipeline.
+Each pipeline owns its own DVC definition. Run a pipeline from its directory:
 
 ```bash
 cd src/pipelines/f1
 uv run dvc repro
 ```
 
-or:
-
-```bash
-cd src/pipelines/ca_house_prediction
-uv run dvc repro
-```
-
-See the pipeline-specific documentation for more details.
-
-## Development
-
-The project uses `uv` for environment and dependency management.
-
-```bash
-uv sync
-```
-
-Run the complete test suite:
-
-```bash
-uv run pytest
-```
-
-Run code-quality checks:
-
-```bash
-uv run ruff check .
-uv run black --check .
-uv run mypy src/
-```
-
-More information is available in the [Development Documentation](docs/development.md).
-
-## Documentation
-
-| Document                                                          | Description                                 |
-| ----------------------------------------------------------------- | ------------------------------------------- |
-| [Platform](src/ml_platform/README.md)                             | Platform architecture and shared components |
-| [Data Management](src/ml_platform/data/README.md)                 | ML-008 data-management layer                |
-| [Training Framework](src/ml_platform/training/README.md)          | ML-009 training framework                   |
-| [F1 Pipeline](src/pipelines/f1/README.md)                         | F1 model documentation                      |
-| [California Housing](src/pipelines/ca_house_prediction/README.md) | California Housing model documentation      |
-| [Architecture](docs/architecture.md)                              | Overall system architecture                 |
-| [Development](docs/development.md)                                | Development workflow and tooling            |
-| [Roadmap](docs/roadmap.md)                                        | Platform roadmap                            |
+Use the equivalent command from `src/pipelines/ca_house_prediction` for the
+California Housing pipeline.
