@@ -21,7 +21,7 @@ class ModelResolver(Protocol):
 
 class PredictionService(Protocol):
     def predict(
-        self, request: PredictionRequest, *, request_id: str | None
+        self, request: PredictionRequest, *, request_id: str | None = None
     ) -> PredictionResponse:
         """Execute a prediction request."""
         ...

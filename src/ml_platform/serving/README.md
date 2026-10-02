@@ -125,6 +125,23 @@ ServingError
 
 These exceptions represent domain-level failures. HTTP-specific error handling belongs to the API layer.
 
+## Observability
+
+Each HTTP request receives an `X-Request-ID` header. Clients may provide the
+header; otherwise the API generates a UUID. The same identifier is returned in
+the response header and included in serving logs.
+
+Prediction logs contain:
+
+- request ID;
+- configured model name, version, and optional alias;
+- end-to-end serving latency in milliseconds;
+- success or failure status;
+- failure event type and error information when applicable.
+
+Serving latency is measured from model resolution through model loading and
+inference. Request inputs and prediction values are not written to logs.
+
 ## Package Structure
 
 ```text

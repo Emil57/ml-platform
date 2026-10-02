@@ -44,13 +44,47 @@ class PredictionService:
 
         try:
             model_uri = self._resolver.resolve(reference)
-            predictor = self._loader.load(model_uri)
-            predictions = predictor.predict(request.inputs)
-
-        except (ModelNotFoundError, ModelLoadError, Exception) as exc:
+        except ModelNotFoundError as exc:
             latency_ms = (perf_counter() - started_at) * 1000
             logger.exception(
                 "event=model_resolution_failed request_id=%s "
+                "model_name=%s model_version=%s model_alias=%s"
+                "latency_ms=%.3f status=failure error_type=%s error=%s",
+                effective_request_id,
+                self._model_name,
+                self._model_version,
+                self._model_alias,
+                latency_ms,
+                type(exc).__name__,
+                str(exc),
+            )
+            raise
+
+        try:
+            predictor = self._loader.load(model_uri)
+
+        except (ModelLoadError, Exception) as exc:
+            latency_ms = (perf_counter() - started_at) * 1000
+            logger.exception(
+                "event=model_load_failed request_id=%s "
+                "model_name=%s model_version=%s model_alias=%s"
+                "latency_ms=%.3f status=failure error_type=%s error=%s",
+                effective_request_id,
+                self._model_name,
+                self._model_version,
+                self._model_alias,
+                latency_ms,
+                type(exc).__name__,
+                str(exc),
+            )
+            raise
+
+        try:
+            predictions = predictor.predict(request.inputs)
+        except Exception as exc:
+            latency_ms = (perf_counter() - started_at) * 1000
+            logger.exception(
+                "event=prediction_failed request_id=%s "
                 "model_name=%s model_version=%s model_alias=%s"
                 "latency_ms=%.3f status=failure error_type=%s error=%s",
                 effective_request_id,
