@@ -1,0 +1,6 @@
+# Only the files needed to build the serving image are sent to Docker.
+*
+!pyproject.toml
+!uv.lock
+!src/ml_platform/
+src/ml_platform/**/__pycache__
