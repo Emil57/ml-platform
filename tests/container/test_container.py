@@ -16,6 +16,20 @@ def test_health_endpoint_is_reachable(start_container: StartContainer) -> None:
     assert container.request("GET", "/health") == (200, {"status": "ok"})
 
 
+def test_default_configuration_reports_not_ready(
+    start_container: StartContainer,
+) -> None:
+    # The default SQLite registry is empty, so the model is not ready (503),
+    # and the non-root user can still create the database file.
+    container = start_container()
+
+    status, body = container.request("GET", "/ready")
+
+    assert status == 503, container.logs()
+    assert body == {"detail": "Model is not ready."}
+    assert "unable to open database file" not in container.logs()
+
+
 def test_docker_reports_container_healthy(start_container: StartContainer) -> None:
     container = start_container(extra_args=("--health-interval=1s",))
 

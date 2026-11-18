@@ -37,6 +37,10 @@ COPY src/ml_platform ./src/ml_platform
 
 USER app
 
+# Run from the user's home so relative paths (the default sqlite:///mlflow.db,
+# an optional .env) are writable without making /app writable.
+WORKDIR /home/app
+
 EXPOSE 8000
 
 # Liveness only: /health never loads the model or runs inference.
