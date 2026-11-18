@@ -1,7 +1,6 @@
 from functools import lru_cache
 
 import mlflow
-from mlflow import MlflowClient
 
 from ml_platform.config import settings
 from ml_platform.serving.loader import MLflowModelLoader
@@ -14,9 +13,9 @@ def get_prediction_service() -> PredictionService:
     mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
     mlflow.set_registry_uri(settings.mlflow_registry_uri)
 
-    client = MlflowClient()
-
-    resolver = MLflowModelResolver(client)
+    # The resolver connects to MLflow on first use, so an unreachable
+    # registry is reported as "not ready" (503) instead of a server error.
+    resolver = MLflowModelResolver()
     loader = MLflowModelLoader()
 
     return PredictionService(

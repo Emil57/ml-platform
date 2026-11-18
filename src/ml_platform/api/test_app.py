@@ -245,3 +245,27 @@ def test_health_check_generates_request_id() -> None:
 
     assert response.status_code == 200
     UUID(response.headers["X-Request-ID"])
+
+
+def test_ready_returns_503_when_registry_is_unreachable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ml_platform.api import dependencies
+    from ml_platform.serving.resolver import MLflowModelResolver
+
+    def unreachable_client() -> Any:
+        raise OSError("unable to open database file")
+
+    monkeypatch.setattr(
+        dependencies,
+        "MLflowModelResolver",
+        lambda: MLflowModelResolver(client_factory=unreachable_client),
+    )
+    get_prediction_service.cache_clear()
+    try:
+        response = client.get("/ready")
+    finally:
+        get_prediction_service.cache_clear()
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Model is not ready."}
