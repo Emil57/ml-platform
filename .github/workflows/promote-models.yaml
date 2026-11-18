@@ -1,66 +1,72 @@
-name: "Promote Models in GTO"
-run-name: "Env ${{ inputs.environment }} - Promote Models"
+name: "Promote Model"
+run-name: "Promote ${{ inputs.model-name }} to @${{ inputs.alias || inputs.environment }}"
+
 on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment'
-        required: false
+        description: "GitHub environment that holds the MLflow credentials"
+        required: true
         type: environment
       model-name:
-        description: 'Model Name'
+        description: "Registered model name (e.g. f1-predictor)"
+        required: true
+        type: string
+      version:
+        description: "Model version to promote (empty = latest)"
         required: false
-        default: ''
+        default: ""
+        type: string
+      alias:
+        description: "MLflow alias to assign (empty = environment name)"
+        required: false
+        default: ""
         type: string
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   promote-model:
-    name: "Promote Models"
+    name: "Promote Model"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    env:
+      MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+      MLFLOW_REGISTRY_URI: ${{ secrets.MLFLOW_REGISTRY_URI || secrets.MLFLOW_TRACKING_URI }}
+      MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
+      MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
+      MLFLOW_TRACKING_TOKEN: ${{ secrets.MLFLOW_TRACKING_TOKEN }}
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          fetch-tags: true # ensures tags are available for GTO
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version-file: ".python-version"
 
-      - name: Install Poetry
-        uses: abatilo/actions-poetry@v3
-        with:
-          poetry-version: latest
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
-      - name: Install project dependencies
-        run: poetry install
+      - name: Install dependencies
+        run: uv sync --no-dev
 
-      - name: Configure Git
+      - name: Check MLflow configuration
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -z "$MLFLOW_TRACKING_URI" ]; then
+            echo "::error::Set the MLFLOW_TRACKING_URI secret on the '${{ inputs.environment }}' environment."
+            exit 1
+          fi
 
-      - name: Ensure GTO is working
+      - name: Promote model
+        env:
+          MODEL_NAME: ${{ inputs.model-name }}
+          MODEL_VERSION: ${{ inputs.version }}
+          MODEL_ALIAS: ${{ inputs.alias || inputs.environment }}
         run: |
-          poetry run gto show
-
-      - name: Check and register a new model
-        id: register
-        if : ${{ inputs.model-name != '' }}
-        run: |
-          poetry run gto register ${{ inputs.model-name }} --version v0.0.1
-
-      - name: GTO Promote model
-        if: ${{ inputs.model-name != '' || steps.register.outcome == 'failed' }}
-        run: |
-          version=$(poetry run gto show ca-housing-model@latest --version)
-
-          echo "$version"
-          poetry run gto assign ${{ inputs.model-name }} --version $version --stage ${{ inputs.environment }} || echo "Model promotion failed"
-          git push origin --tags || echo "No tags to push"
+          uv run python -m ml_platform.registry.promote \
+            --model-name "$MODEL_NAME" \
+            --alias "$MODEL_ALIAS" \
+            --version "$MODEL_VERSION" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
