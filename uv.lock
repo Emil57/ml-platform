@@ -1011,7 +1011,7 @@ name = "gunicorn"
 version = "26.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "packaging", marker = "sys_platform != 'win32'" },
+    { name = "packaging" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/6d/b7/a4a3f632f823e432ce6bc65f62961b7980c898c77f075a2f7118cb3846fe/gunicorn-26.0.0.tar.gz", hash = "sha256:ca9346f85e3a4aeeb64d491045c16b9a35647abd37ea15efe53080eb8b090baf", size = 727286, upload-time = "2026-05-05T06:38:25.529Z" }
 wheels = [
@@ -1032,8 +1032,8 @@ name = "httpcore2"
 version = "2.10.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "h11", marker = "sys_platform != 'emscripten'" },
-    { name = "truststore", marker = "sys_platform != 'emscripten'" },
+    { name = "h11" },
+    { name = "truststore" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a9/83/a896fc59940fc5a6e2aff3a4be1d92fa890112936803b331cae75a993c34/httpcore2-2.10.0.tar.gz", hash = "sha256:13c0cc3d1919d4f28457f60cd2c2abe04113a8af184ccf1142811beba936f9dc", size = 67427, upload-time = "2026-08-09T09:11:32.123Z" }
 wheels = [
@@ -1334,7 +1334,6 @@ source = { editable = "." }
 dependencies = [
     { name = "dvc" },
     { name = "fastapi" },
-    { name = "gto" },
     { name = "httpx2" },
     { name = "joblib" },
     { name = "kaggle" },
@@ -1361,7 +1360,6 @@ dev = [
 requires-dist = [
     { name = "dvc", specifier = "==3.64.0" },
     { name = "fastapi", specifier = ">=0.141.1" },
-    { name = "gto", specifier = ">=1.9.0" },
     { name = "httpx2", specifier = ">=2.10.0" },
     { name = "joblib", specifier = ">=1.2" },
     { name = "kaggle", specifier = ">=1.8.3" },
