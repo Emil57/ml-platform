@@ -1332,14 +1332,10 @@ name = "machine-learning"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "dvc" },
     { name = "fastapi" },
-    { name = "httpx2" },
     { name = "joblib" },
-    { name = "kaggle" },
     { name = "mlflow" },
     { name = "pandas" },
-    { name = "pathspec" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "scikit-learn" },
@@ -1349,23 +1345,25 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "black" },
+    { name = "httpx2" },
     { name = "mypy" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
 ]
+pipelines = [
+    { name = "dvc" },
+    { name = "kaggle" },
+    { name = "pathspec" },
+]
 
 [package.metadata]
 requires-dist = [
-    { name = "dvc", specifier = "==3.64.0" },
     { name = "fastapi", specifier = ">=0.141.1" },
-    { name = "httpx2", specifier = ">=2.10.0" },
     { name = "joblib", specifier = ">=1.2" },
-    { name = "kaggle", specifier = ">=1.8.3" },
     { name = "mlflow", specifier = ">=3.15.1" },
     { name = "pandas", specifier = ">=2.0" },
-    { name = "pathspec", specifier = "<1.0" },
     { name = "pydantic", specifier = ">=2.13.4" },
     { name = "pydantic-settings", specifier = ">=2.14.2" },
     { name = "scikit-learn", specifier = ">=1.2" },
@@ -1375,11 +1373,17 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "black" },
+    { name = "httpx2", specifier = ">=2.10.0" },
     { name = "mypy" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
+]
+pipelines = [
+    { name = "dvc", specifier = "==3.64.0" },
+    { name = "kaggle", specifier = ">=1.8.3" },
+    { name = "pathspec", specifier = "<1.0" },
 ]
 
 [[package]]
