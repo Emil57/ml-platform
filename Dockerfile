@@ -21,4 +21,8 @@ ENV PATH="/app/.venv/bin:$PATH" \
 
 EXPOSE 8000
 
+# Liveness only: /health never loads the model or runs inference.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD ["python", "-m", "ml_platform.api.healthcheck"]
+
 CMD ["python", "-m", "ml_platform.api"]
