@@ -1,0 +1,14 @@
+# Allow-list: only the files needed to build the serving image reach Docker.
+# Everything else (.env, .git, .venv, mlflow.db, mlruns/, artifacts/, caches)
+# is excluded by the first rule.
+*
+!pyproject.toml
+!uv.lock
+!src/ml_platform/
+
+# Tests, docs and bytecode are not needed at runtime.
+src/ml_platform/**/__pycache__
+src/ml_platform/**/tests/
+src/ml_platform/**/test_*.py
+src/ml_platform/**/conftest.py
+src/ml_platform/**/*.md

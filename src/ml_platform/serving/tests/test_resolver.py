@@ -82,3 +82,23 @@ def test_resolve_missing_model_alias() -> None:
 
     with pytest.raises(ModelNotFoundError):
         resolver.resolve(reference)
+
+
+def test_client_is_created_lazily_on_resolve() -> None:
+    factory = MagicMock()
+
+    resolver = MLflowModelResolver(client_factory=factory)
+    factory.assert_not_called()
+
+    resolver.resolve(ModelReference(name="model", version="1"))
+    resolver.resolve(ModelReference(name="model", version="1"))
+
+    factory.assert_called_once_with()
+
+
+def test_unreachable_registry_raises_model_not_found() -> None:
+    factory = MagicMock(side_effect=OSError("unable to open database file"))
+    resolver = MLflowModelResolver(client_factory=factory)
+
+    with pytest.raises(ModelNotFoundError):
+        resolver.resolve(ModelReference(name="model", version="1"))
